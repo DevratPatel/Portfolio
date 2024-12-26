@@ -1,9 +1,10 @@
-import Image from "next/image";
+import { GridBackground, GridBackgroundHero } from "./layout";
 
 export default function Home() {
   return (
-    <div>
-      <h1>Hello World</h1>
+    <div className="h-screen w-screen">
+      <GridBackgroundHero />
+      <GridBackground />
     </div>
   );
 }
