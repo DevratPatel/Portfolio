@@ -2,12 +2,47 @@ import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import React from "react";
+import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+import Link from "next/link";
 
 export function GridBackgroundHero() {
   return (
     <div className="h-[50rem] w-full dark:bg-white bg-black dark:bg-grid-white/[0.1] bg-grid-white/[0.1] relative flex items-center justify-center">
+      {/* Add navbar at the top */}
+      <div className="absolute top-0 w-full flex justify-center p-6 z-30">
+        <div className="flex gap-4">
+          <HoverBorderGradient>
+            <div className="flex items-center gap-4">
+              <img
+                src="/dp logo.svg"
+                alt="dp logo"
+                className="w-5 ml-2 mr-14 my-2"
+              />
+              <Link href="/" className="ml-14 text-white">
+                Home
+              </Link>
+              <Link
+                href="/about"
+                target="new"
+                className="mx-2 text-white opacity-50 hover:opacity-100 transition-all duration-300 ease-in-out"
+              >
+                About
+              </Link>
+              <Link
+                href="/DP CR.pdf"
+                target="new"
+                className="mr-2 text-white opacity-50 hover:opacity-100 transition-all duration-300 ease-in-out"
+              >
+                Resume
+              </Link>
+            </div>
+          </HoverBorderGradient>
+        </div>
+      </div>
+
       {/* Radial gradient for the container to give a faded look */}
       <div className="absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-white bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black)]"></div>
+
       <div className="absolute inset-0 w-full h-full group/items">
         <img
           src="/Gradient Mesh.svg"
