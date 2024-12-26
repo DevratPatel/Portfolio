@@ -29,7 +29,7 @@ export function GridBackgroundHero() {
                 About
               </Link>
               <Link
-                href="/DP CR.pdf"
+                href="/DP"
                 target="new"
                 className="mr-2 text-white opacity-50 hover:opacity-100 transition-all duration-300 ease-in-out"
               >
@@ -54,27 +54,39 @@ export function GridBackgroundHero() {
         <p className="font-dm-sans text-4xl sm:text-7xl bg-clip-text text-transparent bg-gradient-to-b from-neutral-100 to-neutral-500">
           Devrat
         </p>
-        <div className="text-white/70 text-[22px] font-light font-['DM Sans']">
-          /dev: vrat/
-        </div>
-        <div className="text-white/50 text-[22px] font-light italic font-['DM Sans'] mt-3 mb-0">
-          noun
-        </div>
-        <div className="text-white/80 text-[22px] font-light font-['DM Sans']">
-          President of ACM at UTA
-        </div>
-        <div className="text-white/50 text-[22px] font-light italic font-['DM Sans'] mt-3 mb-0">
-          verb
-        </div>
-        <div className="text-white/80 text-[22px] font-light font-['DM Sans']">
-          1. Create and innovate <br />
-          2. Influence and inspire
-        </div>
-        <div className="text-white/50 text-[22px] font-light italic font-['DM Sans'] mt-3 mb-0">
-          adjective
-        </div>
-        <div className="text-white/80 text-[22px] font-light font-['DM Sans']">
-          1. Persistent, detail-oriented
+        <div className="group relative">
+          {/* Original content - hidden on hover */}
+          <div className="text-white/70 text-[22px] font-light font-['DM Sans']">
+            /dev: vrat/
+          </div>
+          <div className="group-hover:opacity-0 transition-opacity duration-300">
+            <div className="text-white/50 text-[22px] font-light italic font-['DM Sans'] mt-3 mb-0">
+              noun
+            </div>
+            <div className="text-white/80 text-[22px] font-light font-['DM Sans']">
+              President of ACM at UTA
+            </div>
+            <div className="text-white/50 text-[22px] font-light italic font-['DM Sans'] mt-3 mb-0">
+              verb
+            </div>
+            <div className="text-white/80 text-[22px] font-light font-['DM Sans']">
+              1. Create and innovate <br />
+              2. Influence and inspire
+            </div>
+            <div className="text-white/50 text-[22px] font-light italic font-['DM Sans'] mt-3 mb-0">
+              adjective
+            </div>
+            <div className="text-white/80 text-[22px] font-light font-['DM Sans']">
+              1. Persistent, detail-oriented
+            </div>
+          </div>
+
+          {/* New content - shown on hover */}
+          <div className="absolute top-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="text-white/80 text-[40px] font-light font-['DM Sans']">
+              Nothing defines me. LOL
+            </div>
+          </div>
         </div>
         <div
           style={{
