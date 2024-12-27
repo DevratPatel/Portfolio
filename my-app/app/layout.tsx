@@ -3,7 +3,6 @@ import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import React from "react";
 import { DefinitionHover } from "@/components/ui/definition";
-import { AlternativeHover } from "@/components/ui/alternative";
 import { ActuallyBtn } from "@/components/ui/actuallybutton";
 import { Navbar } from "@/components/ui/navbar";
 
@@ -25,9 +24,10 @@ export function GridBackgroundHero() {
         <p className="font-dm-sans text-4xl sm:text-7xl bg-clip-text text-transparent bg-gradient-to-b from-neutral-100 to-neutral-500">
           Devrat
         </p>
-        <DefinitionHover />
-        <AlternativeHover />
-        <ActuallyBtn />
+        <div className="group/actually relative inline-block">
+          <DefinitionHover />
+          <ActuallyBtn />
+        </div>
       </div>
       <div className="absolute inset-0 w-full h-full flex items-end justify-center pb-8">
         <img
