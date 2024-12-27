@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { HoverBorderGradient } from "./hover-border-gradient";
 
 export function Navbar() {
@@ -7,28 +9,30 @@ export function Navbar() {
       <div className="flex gap-4">
         <HoverBorderGradient>
           <div className="flex items-center gap-4">
-            <img
+            <Image
               src="/dp logo.svg"
               alt="dp logo"
-              className="w-5 ml-2 mr-14 my-2"
+              width={20}
+              height={20}
+              className="ml-2 mr-14 my-2"
             />
-            <a href="/" className="ml-14 text-white">
+            <Link href="/" className="ml-14 text-white">
               Home
-            </a>
-            <a
+            </Link>
+            <Link
               href="/about"
-              target="new"
+              target="_blank"
               className="mx-2 text-white opacity-50 hover:opacity-100 transition-all duration-300 ease-in-out"
             >
               About
-            </a>
-            <a
-              href="/DP"
-              target="new"
+            </Link>
+            <Link
+              href="/DP CR.pdf"
+              target="_blank"
               className="mr-2 text-white opacity-50 hover:opacity-100 transition-all duration-300 ease-in-out"
             >
               Resume
-            </a>
+            </Link>
           </div>
         </HoverBorderGradient>
       </div>
