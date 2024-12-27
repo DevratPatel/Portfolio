@@ -1,4 +1,4 @@
-import { GridBackgroundHero } from "./layout";
+import { GridBackgroundHero } from "../components/ui/grid-background";
 
 export default function Home() {
   return (
