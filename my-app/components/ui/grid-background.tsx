@@ -1,6 +1,9 @@
 import { Navbar } from "@/components/ui/navbar";
 import { DefinitionHover } from "@/components/ui/definition";
 import { ActuallyBtn } from "@/components/ui/actuallybutton";
+import { Mavgrades } from "../mavgradescard";
+import { AcmUTA } from "../acmuta";
+import { CodeWithMOBI } from "../codewithmobi";
 
 export function GridBackgroundHero() {
   return (
@@ -36,11 +39,57 @@ export function GridBackgroundHero() {
   );
 }
 
-export function GridBackground() {
+export function ProjectOne() {
   return (
     <div className="h-[50rem] w-full dark:bg-white bg-black  dark:bg-grid-white/[0.1] bg-grid-white/[0.1] relative flex items-center justify-center">
       {/* Radial gradient for the container to give a faded look */}
       <div className="absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-white bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black)]"></div>
+      <div className="absolute inset-0 w-full h-full group/items">
+        <img
+          src="/Gradient Mesh.svg"
+          alt="Gradient Mesh"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover/items:scale-110"
+        />
+      </div>
+      <div className="flex-col gap-0 justify-center items-start">
+        <Mavgrades />
+      </div>
+    </div>
+  );
+}
+export function ProjectTwo() {
+  return (
+    <div className="h-[50rem] w-full dark:bg-white bg-black  dark:bg-grid-white/[0.1] bg-grid-white/[0.1] relative flex items-center justify-center">
+      {/* Radial gradient for the container to give a faded look */}
+      <div className="absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-white bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black)]"></div>
+      <div className="absolute inset-0 w-full h-full group/items">
+        <img
+          src="/Gradient Mesh.svg"
+          alt="Gradient Mesh"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover/items:scale-110"
+        />
+      </div>
+      <div className="flex-col gap-0 justify-center items-start">
+        <AcmUTA />
+      </div>
+    </div>
+  );
+}
+export function ProjectThree() {
+  return (
+    <div className="h-[50rem] max-w-screen-2xl dark:bg-white bg-black  dark:bg-grid-white/[0.1] bg-grid-white/[0.1] relative flex items-center justify-center">
+      {/* Radial gradient for the container to give a faded look */}
+      <div className="absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-white bg-black [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black)]"></div>
+      <div className="absolute inset-0 w-full h-full group/items">
+        <img
+          src="/Gradient Mesh.svg"
+          alt="Gradient Mesh"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover/items:scale-110"
+        />
+      </div>
+      <div className="flex-col gap-0 justify-center items-start">
+        <CodeWithMOBI />
+      </div>
     </div>
   );
 }
