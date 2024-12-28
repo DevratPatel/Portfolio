@@ -32,7 +32,7 @@ export function AcmUTA() {
           className="text-neutral-300 font-light text-sm w-auto mt-1"
         >
           <div className="text-white opacity-50">
-            A website for UT Arlington's largest computer science
+            A website for UT Arlington&apos;s largest computer science
             organization—uniting students through technology.
           </div>
         </CardItem>
