@@ -16,12 +16,26 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  keywords: [
+    "Devrat",
+    "Patel",
+    "Devrat Patel",
+    "Developer",
+    "Full Stack",
+    "Software",
+    "Software Engineer",
+    "ACM",
+    "ACM UTA",
+  ],
+  authors: [{ name: "Devrat Patel" }],
   openGraph: {
     title: "Devrat Patel",
-    description: "Design is thinking made visual. And I Design.",
+    description: `Design is thinking made visual. And I Design.`,
+    url: "https://www.devratpatel.com",
+    type: "website",
     images: [
       {
-        url: "/devratmeta.svg",
+        url: "/devratmeta.png",
         width: 1200,
         height: 630,
         alt: "Devrat Patel",
