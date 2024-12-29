@@ -1,3 +1,4 @@
+import Footer from "@/components/footer";
 import {
   GridBackgroundHero,
   ProjectOne,
@@ -7,11 +8,12 @@ import {
 
 export default function Home() {
   return (
-    <div className="h-screen w-screen">
+    <div className="h-screen w-screen mx-auto overflow-x-hidden">
       <GridBackgroundHero />
       <ProjectOne />
       <ProjectTwo />
       <ProjectThree />
+      <Footer />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export function AcmUTA() {
   return (
-    <CardContainer className="inter-var">
+    <CardContainer className="inter-var p-4">
       <CardBody className="bg-black relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] border-white/[0.2] w-auto sm:w-[50rem] h-auto rounded-xl p-6 border">
         <CardItem
           translateZ="75"
@@ -17,7 +17,7 @@ export function AcmUTA() {
             src="/acmuta.svg"
             height="1000"
             width="1000"
-            className="h-[450px] w-full object-cover rounded-xl group-hover/card:shadow-xl"
+            className="h-auto w-full object-cover rounded-xl group-hover/card:shadow-xl"
             alt="thumbnail"
           />
         </CardItem>

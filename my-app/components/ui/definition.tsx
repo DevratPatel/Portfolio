@@ -3,9 +3,6 @@ import React from "react";
 export function DefinitionHover() {
   return (
     <div>
-      <div className="text-white/70 text-[22px] font-light font-['DM Sans']">
-        /dev: vrat/
-      </div>
       {/* 1) The main definition (visible by default, hidden on hover) */}
       <div className="opacity-100 group-hover/actually:opacity-0 transition-opacity duration-300">
         <div>
