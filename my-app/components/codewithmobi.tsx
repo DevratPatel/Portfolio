@@ -36,7 +36,7 @@ export function CodeWithMOBI() {
           className="text-neutral-300 font-light text-sm w-auto mt-1"
         >
           <div className="text-white opacity-50">
-            A website for a Mobile Development student orgnaization at UT
+            A website for a Mobile Development student organization at UT
             Arlington.
           </div>
         </CardItem>
