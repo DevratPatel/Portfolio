@@ -12,9 +12,21 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "Devrat Patel",
-  description: "Personal portfolio website of Devrat Patel",
+  description: "Design is thinking made visual. And I Design.",
   icons: {
     icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Devrat Patel",
+    description: "Design is thinking made visual. And I Design.",
+    images: [
+      {
+        url: "/devratmeta.svg",
+        width: 1200,
+        height: 630,
+        alt: "Devrat Patel",
+      },
+    ],
   },
 };
 
