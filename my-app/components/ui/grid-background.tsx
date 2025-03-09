@@ -38,7 +38,7 @@ export function GridBackgroundHero() {
           <img
             src="/Down Arrow.svg"
             alt="Down Arrow"
-            className="floating w-12 h-12 opacity-70 hover:opacity-100 transition-opacity duration-300"
+            className="floating w-12 h-12 opacity-90 hover:opacity-100 transition-opacity duration-300"
             onClick={() => {
               const nextSection = document.getElementById("project-one");
               if (nextSection) {
