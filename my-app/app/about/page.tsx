@@ -40,11 +40,13 @@ const About: React.FC = () => {
         </div>
         <div className="about-text">
           <p className="text-2xl my-2">
-            Hi, I'm{" "}
-            <span className="animated-gradient-text">Devrat Patel </span>
+            Hi, I&apos;m
+            <span className="animated-gradient-text"> Devrat Patel </span>
             (Dev).
           </p>
-          <p>I'm a CS Sophomore at UT Arlington and President of ACM at UTA.</p>
+          <p>
+            I&apos;m a CS Sophomore at UT Arlington and President of ACM at UTA.
+          </p>
           <p>
             I love to design. I like badminton and music. I enjoy challenging my
             creativity to build cool things!

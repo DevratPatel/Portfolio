@@ -6,7 +6,6 @@ import { ActuallyBtn } from "@/components/ui/actuallybutton";
 import { Mavgrades } from "../mavgradescard";
 import { AcmUTA } from "../acmuta";
 import { CodeWithMOBI } from "../codewithmobi";
-import { div } from "framer-motion/client";
 
 export function GridBackgroundHero() {
   return (
