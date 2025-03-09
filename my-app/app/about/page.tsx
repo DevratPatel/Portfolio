@@ -32,7 +32,7 @@ const About: React.FC = () => {
       <div className="about-content p-12 flex flex-col items-center justify-center gap-10">
         <div className="about-image">
           <Image
-            src="/devrat_about.png"
+            src="/devrat_about.svg"
             alt="Devrat Patel"
             width={200}
             height={200}
