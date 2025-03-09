@@ -1,0 +1,54 @@
+.about-container {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+  background-color: black;
+  color: white;
+  transition: all 0.5s ease;
+}
+.animated-gradient-text {
+  background: linear-gradient(to right, #4b84f0, #0c41ff, #30d2f6, #3b82f6);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-anim 5s ease infinite;
+}
+
+@keyframes gradient-anim {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+.about-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.about-text {
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.about-image img {
+  width: 100%;
+  height: auto;
+  transition: transform 0.5s ease;
+}
+
+.scrolling .about-text {
+  opacity: 0;
+}
+
+.scrolling .about-image img {
+  transform: scale(1.2);
+}
