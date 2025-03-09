@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Navbar } from "../../components/ui/navbar"; // Adjust the path as necessary
-import "./About.css"; // Add your styles here
-import Image from "next/image"; // Import Next.js Image component
+import { Navbar } from "../../components/ui/navbar";
+import "./about.css";
+import Image from "next/image";
 
 const About: React.FC = () => {
   const [scrolling, setScrolling] = useState(false);

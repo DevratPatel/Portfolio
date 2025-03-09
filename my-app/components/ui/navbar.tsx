@@ -16,13 +16,15 @@ export function Navbar() {
       <div className="flex gap-4">
         <HoverBorderGradient>
           <div className="flex items-center gap-4">
-            <Image
-              src="/dp logo.svg"
-              alt="dp logo"
-              width={20}
-              height={20}
-              className="ml-2 mr-28 my-2"
-            />
+            <Link href="/">
+              <Image
+                src="/dp logo.svg"
+                alt="dp logo"
+                width={20}
+                height={20}
+                className="ml-2 mr-28 my-2"
+              />
+            </Link>
             <div
               className={`mx-2 text-white ${
                 activeLink === "home" ? "opacity-100" : "opacity-50"
