@@ -11,7 +11,7 @@ export function CodeWithMOBI() {
       <CardBody className="bg-black relative group/card dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] border-white/[0.2] w-auto sm:w-[50rem] h-auto rounded-xl p-6 border">
         <CardItem
           translateZ="75"
-          className="w-full mt-4 opacity-70 hover:opacity-100 transition-opacity duration-300"
+          className="w-full mt-4 opacity-90 hover:opacity-100 transition-opacity duration-300"
         >
           <Image
             src="/codewithmobi.svg"

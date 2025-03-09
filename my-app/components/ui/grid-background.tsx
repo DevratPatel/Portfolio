@@ -38,7 +38,7 @@ export function GridBackgroundHero() {
           <img
             src="/Down Arrow.svg"
             alt="Down Arrow"
-            className="w-12 h-12 opacity-70 hover:opacity-100 transition-opacity duration-300"
+            className="floating w-12 h-12 opacity-70 hover:opacity-100 transition-opacity duration-300"
             onClick={() => {
               const nextSection = document.getElementById("project-one");
               if (nextSection) {
@@ -46,6 +46,20 @@ export function GridBackgroundHero() {
               }
             }}
           />
+          <style jsx>{`
+            @keyframes float {
+              0%,
+              100% {
+                transform: translateY(0);
+              }
+              50% {
+                transform: translateY(-8px);
+              }
+            }
+            .floating {
+              animation: float 2s ease-in-out infinite;
+            }
+          `}</style>
         </div>
       </div>
     </div>
