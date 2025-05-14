@@ -45,7 +45,9 @@ export function Navbar() {
               className={`mr-2 text-white ${
                 activeLink === "resume" ? "opacity-100" : "opacity-50"
               } hover:opacity-100 transition-all duration-300 ease-in-out`}
-              onClick={() => handleLinkClick("resume", "/DP CR.pdf")}
+              onClick={() =>
+                handleLinkClick("resume", "/Devrat_Patel_Resume_2025.pdf")
+              }
             >
               Resume
             </div>
