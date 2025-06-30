@@ -46,7 +46,7 @@ export function Navbar() {
                 activeLink === "resume" ? "opacity-100" : "opacity-50"
               } hover:opacity-100 transition-all duration-300 ease-in-out`}
               onClick={() =>
-                handleLinkClick("resume", "/Devrat_Patel_Resume_2025.pdf")
+                handleLinkClick("resume", "/Devrat_Resume_2025.pdf")
               }
             >
               Resume
