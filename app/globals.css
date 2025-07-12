@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* Terminal scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-primary);
+}
+
+/* Custom CSS variables for consistent theming */
+:root {
+  --editor-bg: #0d0d0d;
+  --sidebar-bg: #161617;
+  --panel-bg: #1a1a1b;
+  --text-primary: #e0e0e0;
+  --text-secondary: #9ca3af;
+  --text-keyword: #569cd6;
+  --text-string: #ce9178;
+  --text-comment: #6a9955;
+  --text-function: #dcdcaa;
+  --text-type: #4ec9b0;
+  --text-number: #b5cea8;
+  --border-color: #2a2a2a;
+  --hover-bg: rgba(255, 255, 255, 0.1);
+  --accent-color: #007acc;
+}
+
+/* Code editor color variables for preview panel */
+body {
+  --editor-background: var(--panel-bg);
+  --editor-foreground: var(--text-primary);
+  --textCodeBlock-background: var(--editor-bg);
+  --textBlockQuote-background: var(--sidebar-bg);
+  --textLink-foreground: var(--accent-color);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--editor-bg);
+  color: var(--text-primary);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Custom blink animation for terminal cursor */
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Code syntax highlighting */
+.code-keyword {
+  color: #569cd6;
+}
+
+.code-string {
+  color: #ce9178;
+}
+
+.code-number {
+  color: #b5cea8;
+}
+
+.code-comment {
+  color: #6a9955;
+}
+
+.code-property {
+  color: #92c5f7;
+}
+
+.code-punctuation {
+  color: #e0e0e0;
+}
