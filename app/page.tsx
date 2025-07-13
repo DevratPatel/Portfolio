@@ -6,8 +6,8 @@ import CodeEditor from "./components/CodeEditor";
 import PreviewPanel from "./components/PreviewPanel";
 
 export default function Home() {
-  const [activeFile, setActiveFile] = useState<string>("");
-  const [openFiles, setOpenFiles] = useState<string[]>([]);
+  const [activeFile, setActiveFile] = useState<string>("README.md");
+  const [openFiles, setOpenFiles] = useState<string[]>(["README.md"]);
   const [sidebarWidth, setSidebarWidth] = useState(256); // 16rem = 256px
   const [previewWidth, setPreviewWidth] = useState(532); // Default preview width
   const [isDragging, setIsDragging] = useState<"sidebar" | "preview" | null>(
