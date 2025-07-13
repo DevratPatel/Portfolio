@@ -29,6 +29,7 @@ interface CodeEditorProps {
   onToggleTerminal: () => void;
   onTerminalHeightChange: (height: number) => void;
   isMobile?: boolean;
+  isTablet?: boolean;
   inputFocus: "terminal" | "notepad" | null;
   onInputFocusChange: (focus: "terminal" | "notepad" | null) => void;
 }
@@ -43,6 +44,7 @@ export default function CodeEditor({
   onToggleTerminal,
   onTerminalHeightChange,
   isMobile = false,
+  isTablet = false,
   inputFocus,
   onInputFocusChange,
 }: CodeEditorProps) {
@@ -1888,8 +1890,8 @@ export default function CodeEditor({
 
   return (
     <div className="flex flex-col h-full bg-editor-bg code-editor-container">
-      {/* Tab Bar - Hidden on mobile when terminal is visible */}
-      {!(isMobile && isTerminalVisible) && (
+      {/* Tab Bar - Hidden on mobile when terminal is visible, but shown on tablets */}
+      {!(isMobile && isTerminalVisible && !isTablet) && (
         <div className="flex border-b border-border-color bg-panel-bg overflow-x-auto">
           {openFiles.map((file) => (
             <div
@@ -1919,8 +1921,8 @@ export default function CodeEditor({
 
       {/* Editor Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Editor content area - Hidden on mobile when terminal is visible */}
-        {!(isMobile && isTerminalVisible) && (
+        {/* Editor content area - Hidden on mobile when terminal is visible, but shown on tablets */}
+        {!(isMobile && isTerminalVisible && !isTablet) && (
           <div
             className="flex-1 overflow-auto p-4 cursor-pointer"
             style={{
@@ -1967,7 +1969,7 @@ export default function CodeEditor({
         )}
 
         {/* Edit Permission Message - Positioned above terminal */}
-        {showEditMessage && !(isMobile && isTerminalVisible) && (
+        {showEditMessage && !(isMobile && isTerminalVisible && !isTablet) && (
           <div className="bg-panel-bg border-t border-border-color px-4 py-2 flex items-center justify-between text-xs text-text-primary/80 animate-fade-in">
             <div className="flex items-center gap-2">
               <span className="text-yellow-400">⚠️</span>
@@ -1987,13 +1989,18 @@ export default function CodeEditor({
 
         {/* Terminal */}
         {isTerminalVisible && (
-          <div className={isMobile ? "" : "border-t border-border-color"}>
+          <div
+            className={
+              isMobile && !isTablet ? "flex-1" : "border-t border-border-color"
+            }
+          >
             <Terminal
               isVisible={true}
               onToggle={onToggleTerminal}
               height={terminalHeight}
               onHeightChange={onTerminalHeightChange}
               isMobile={isMobile}
+              isTablet={isTablet}
               inputFocus={inputFocus}
               onInputFocusChange={onInputFocusChange}
             />
