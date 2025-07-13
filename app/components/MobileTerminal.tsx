@@ -335,15 +335,6 @@ Examples:
           <VscTerminalBash size={16} className="text-text-primary" />
           <span className="text-sm text-text-primary">Terminal</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onToggle}
-            className="p-1 hover:bg-border-color rounded"
-            title="Close Terminal"
-          >
-            <VscChromeClose size={14} className="text-text-primary" />
-          </button>
-        </div>
       </div>
 
       {/* Profile Header */}
