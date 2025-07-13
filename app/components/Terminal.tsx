@@ -81,7 +81,7 @@ export default function Terminal({
   const [typingLineId, setTypingLineId] = useState<string | null>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
-  const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize terminal on mount
   useEffect(() => {
@@ -133,57 +133,26 @@ export default function Terminal({
 
   // Focus terminal when it becomes visible
   useEffect(() => {
-    if (isVisible) {
-      if (
-        (isMobile || isTablet) &&
-        hiddenInputRef.current &&
-        inputFocus === "terminal"
-      ) {
-        console.log("Mobile/tablet terminal focusing input");
-
-        setTimeout(() => {
-          hiddenInputRef.current?.focus();
-          // Additional trigger for iOS devices
-          if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-            hiddenInputRef.current?.click();
-          }
-        }, 100);
-      } else if (!isMobile && !isTablet && terminalRef.current) {
+    if (isVisible && inputFocus === "terminal") {
+      if (isMobile || isTablet) {
+        // Focus the textbox for mobile/tablet
+        mobileInputRef.current?.focus();
+      } else if (terminalRef.current) {
+        // Focus the terminal div for desktop
         terminalRef.current.focus();
       }
     }
   }, [isVisible, isMobile, isTablet, inputFocus]);
 
-  // Sync hidden input value with current input
-  useEffect(() => {
-    if ((isMobile || isTablet) && hiddenInputRef.current) {
-      hiddenInputRef.current.value = currentInput;
-    }
-  }, [currentInput, isMobile, isTablet]);
-
-  // Focus hidden input when terminal gains focus on mobile/tablet
+  // Auto-focus the textbox on mobile/tablet when terminal is selected
   useEffect(() => {
     if (
       (isMobile || isTablet) &&
       inputFocus === "terminal" &&
-      hiddenInputRef.current
+      mobileInputRef.current
     ) {
-      console.log("Mobile/tablet terminal input focus change", {
-        isMobile,
-        isTablet,
-      });
-
-      // Immediate focus on the hidden input to trigger keyboard
-      hiddenInputRef.current.focus();
-      hiddenInputRef.current.click();
-
-      // Small delayed refocus for reliability on some devices
-      setTimeout(() => hiddenInputRef.current?.focus(), 50);
-    } else if ((isMobile || isTablet) && inputFocus !== "terminal") {
-      // No special handling needed now
+      mobileInputRef.current.focus();
     }
-    // No cleanup necessary
-    return () => {};
   }, [inputFocus, isMobile, isTablet]);
 
   // Handle terminal focus and keyboard events
@@ -191,8 +160,8 @@ export default function Terminal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isVisible || typingLineId || inputFocus !== "terminal") return; // Only handle when terminal is in focus
 
-      // Skip if the event is coming from the hidden input (mobile/tablet)
-      if ((isMobile || isTablet) && e.target === hiddenInputRef.current) return;
+      // Skip if the event is coming from the mobile input (mobile/tablet)
+      if ((isMobile || isTablet) && e.target === mobileInputRef.current) return;
 
       if (e.key === "Enter") {
         e.preventDefault();
@@ -228,14 +197,8 @@ export default function Terminal({
     const handleClick = (e: MouseEvent) => {
       if (isVisible && terminalRef.current && !typingLineId) {
         const target = e.target as HTMLElement;
-        // Check if click is within the terminal
         if (terminalRef.current.contains(target)) {
           onInputFocusChange("terminal");
-          if (isMobile || isTablet) {
-            hiddenInputRef.current?.focus();
-          } else {
-            terminalRef.current?.focus();
-          }
         }
       }
     };
@@ -245,7 +208,6 @@ export default function Terminal({
         const target = e.target as HTMLElement;
         if (terminalRef.current.contains(target)) {
           onInputFocusChange("terminal");
-          hiddenInputRef.current?.focus();
         }
       }
     };
@@ -278,6 +240,7 @@ export default function Terminal({
     inputFocus,
     onInputFocusChange,
     isMobile,
+    isTablet,
   ]);
 
   // Handle mobile/tablet input
@@ -296,10 +259,8 @@ export default function Terminal({
       e.preventDefault();
       handleCommand(currentInput);
       setCurrentInput("");
-      if (hiddenInputRef.current) {
-        hiddenInputRef.current.value = "";
-        hiddenInputRef.current.focus();
-      }
+      // Keep focus on the input after processing command
+      setTimeout(() => mobileInputRef.current?.focus(), 100);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       if (commandHistory.length > 0) {
@@ -308,11 +269,7 @@ export default function Terminal({
             ? commandHistory.length - 1
             : Math.max(0, historyIndex - 1);
         setHistoryIndex(newIndex);
-        const newInput = commandHistory[newIndex];
-        setCurrentInput(newInput);
-        if (hiddenInputRef.current) {
-          hiddenInputRef.current.value = newInput;
-        }
+        setCurrentInput(commandHistory[newIndex]);
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -320,11 +277,7 @@ export default function Terminal({
         const newIndex =
           historyIndex === commandHistory.length - 1 ? -1 : historyIndex + 1;
         setHistoryIndex(newIndex);
-        const newInput = newIndex === -1 ? "" : commandHistory[newIndex];
-        setCurrentInput(newInput);
-        if (hiddenInputRef.current) {
-          hiddenInputRef.current.value = newInput;
-        }
+        setCurrentInput(newIndex === -1 ? "" : commandHistory[newIndex]);
       }
     }
   };
@@ -550,29 +503,9 @@ Examples:
         tabIndex={0}
         onClick={() => {
           onInputFocusChange("terminal");
-          if (isMobile || isTablet) {
-            hiddenInputRef.current?.focus();
-          } else {
-            terminalRef.current?.focus();
-          }
         }}
-        onTouchStart={(e) => {
-          e.preventDefault(); // Prevent default touch behavior
-          console.log("Terminal area touched", { isMobile, isTablet });
+        onTouchStart={() => {
           onInputFocusChange("terminal");
-          if ((isMobile || isTablet) && hiddenInputRef.current) {
-            const focusInput = () => {
-              if (hiddenInputRef.current) {
-                hiddenInputRef.current.focus();
-                hiddenInputRef.current.click();
-              }
-            };
-
-            // Immediate focus
-            focusInput();
-            // Delayed focus attempts
-            setTimeout(focusInput, 50);
-          }
         }}
       >
         {/* Initial welcome command */}
@@ -674,60 +607,28 @@ Examples:
         <div ref={terminalEndRef} />
       </div>
 
-      {/* Hidden input for mobile/tablet keyboard capture */}
+      {/* Simple textbox for mobile/tablet */}
       {(isMobile || isTablet) && (
-        <>
+        <div className="p-2 border-t border-border-color bg-panel-bg">
           <input
-            ref={hiddenInputRef}
+            ref={mobileInputRef}
             type="text"
             value={currentInput}
             onChange={handleMobileInput}
             onKeyDown={handleMobileKeyDown}
-            className="fixed opacity-0 pointer-events-none -z-10"
-            style={{
-              position: "absolute",
-              left: "0",
-              bottom: "0",
-              width: "1px",
-              height: "1px",
-              border: "none",
-              background: "transparent",
-              outline: "none",
-              fontSize: "16px", // Prevents zoom on iOS
-              opacity: 0,
-              pointerEvents: "auto",
-              zIndex: -1,
-            }}
+            className="w-full p-2 bg-black text-green-400 border border-border-color rounded font-mono text-sm"
+            placeholder="Type your command or question here..."
+            style={{ fontSize: "16px" }} // Prevents zoom on iOS
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck="false"
             inputMode="text"
-            onFocus={(e) => {
-              console.log("Hidden input focused");
-              // Prevent scrolling on focus
-              e.preventDefault();
-              if (inputFocus !== "terminal") {
-                onInputFocusChange("terminal");
-              }
-              // Prevent any viewport changes
-              window.scrollTo(0, 0);
-            }}
-            onBlur={() => {
-              console.log(
-                "Hidden input blurred - not refocusing automatically"
-              );
-              // Restore body scroll when keyboard disappears
-              // No special handling needed now
-            }}
-            onInput={(e) => {
-              console.log(
-                "Mobile input event:",
-                (e.target as HTMLInputElement).value
-              );
+            onFocus={() => {
+              onInputFocusChange("terminal");
             }}
           />
-        </>
+        </div>
       )}
     </div>
   );
