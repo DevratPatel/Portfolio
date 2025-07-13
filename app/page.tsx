@@ -49,21 +49,42 @@ export default function Home() {
   // Handle mobile detection and force terminal visibility on mobile
   useEffect(() => {
     const checkMobile = () => {
+      // Check for mobile/tablet devices based on screen width and touch support
       const isMobileSize = window.innerWidth < 768; // md breakpoint
-      setIsMobile(isMobileSize);
+      const isTabletSize = window.innerWidth < 1024; // lg breakpoint
+      const isTouchDevice =
+        "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+      // Consider it mobile if it's small screen OR it's a touch device with tablet-sized screen
+      const isMobileOrTablet = isMobileSize || (isTabletSize && isTouchDevice);
+      setIsMobile(isMobileOrTablet);
 
       // Force terminal to be visible on mobile and make it full screen
-      if (isMobileSize) {
+      if (isMobileOrTablet) {
         setIsTerminalVisible(true);
         // Set terminal height to full screen on mobile (subtract some space for tabs)
         setTerminalHeight(window.innerHeight - 100); // Account for tab bar and minimal padding
       }
     };
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
+    // Set mobile viewport height for older browsers
+    const setMobileVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
 
-    return () => window.removeEventListener("resize", checkMobile);
+    checkMobile();
+    setMobileVH();
+
+    window.addEventListener("resize", checkMobile);
+    window.addEventListener("resize", setMobileVH);
+    window.addEventListener("orientationchange", setMobileVH);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener("resize", setMobileVH);
+      window.removeEventListener("orientationchange", setMobileVH);
+    };
   }, []);
 
   // Save panel sizes to localStorage when they change
@@ -208,7 +229,10 @@ export default function Home() {
   }, [isDragging]);
 
   return (
-    <div ref={containerRef} className="h-screen flex flex-col bg-editor-bg">
+    <div
+      ref={containerRef}
+      className="mobile-safe-height flex flex-col bg-editor-bg"
+    >
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Hidden on mobile */}

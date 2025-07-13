@@ -152,6 +152,10 @@ export default function Terminal({
     if (isMobile && inputFocus === "terminal" && hiddenInputRef.current) {
       setTimeout(() => {
         hiddenInputRef.current?.focus();
+        // Additional trigger for iOS devices
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+          hiddenInputRef.current?.click();
+        }
       }, 100);
     }
   }, [inputFocus, isMobile]);
@@ -215,9 +219,17 @@ export default function Terminal({
         const target = e.target as HTMLElement;
         // Check if touch is within the terminal
         if (terminalRef.current.contains(target)) {
+          e.preventDefault(); // Prevent default touch behavior
           onInputFocusChange("terminal");
           if (hiddenInputRef.current) {
-            hiddenInputRef.current.focus();
+            // Use setTimeout to ensure proper focus on mobile devices
+            setTimeout(() => {
+              hiddenInputRef.current?.focus();
+              // For iOS devices, trigger click to ensure keyboard appears
+              if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                hiddenInputRef.current?.click();
+              }
+            }, 50);
           }
         }
       }
@@ -250,6 +262,8 @@ export default function Terminal({
     if (!isMobile || inputFocus !== "terminal") return;
     const newValue = e.target.value;
     setCurrentInput(newValue);
+    // Reset history index when typing
+    setHistoryIndex(-1);
   };
 
   const handleMobileKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -478,7 +492,7 @@ Examples:
       className={`terminal-container relative bg-panel-bg flex flex-col ${
         inputFocus === "terminal" ? "ring-2 ring-blue-500/50" : ""
       }`}
-      style={{ height: isMobile ? "100vh" : `${height}px` }}
+      style={{ height: isMobile ? "100%" : `${height}px` }}
     >
       {/* Resize Handle - Hidden on mobile */}
       {!isMobile && (
@@ -513,15 +527,28 @@ Examples:
         onClick={() => {
           onInputFocusChange("terminal");
           if (isMobile && hiddenInputRef.current) {
-            hiddenInputRef.current.focus();
+            setTimeout(() => {
+              hiddenInputRef.current?.focus();
+              // For iOS devices, trigger click to ensure keyboard appears
+              if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                hiddenInputRef.current?.click();
+              }
+            }, 50);
           } else {
             terminalRef.current?.focus();
           }
         }}
-        onTouchStart={() => {
+        onTouchStart={(e) => {
+          e.preventDefault(); // Prevent default touch behavior
           onInputFocusChange("terminal");
           if (isMobile && hiddenInputRef.current) {
-            hiddenInputRef.current.focus();
+            setTimeout(() => {
+              hiddenInputRef.current?.focus();
+              // For iOS devices, trigger click to ensure keyboard appears
+              if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                hiddenInputRef.current?.click();
+              }
+            }, 50);
           }
         }}
       >
@@ -632,18 +659,37 @@ Examples:
           value={currentInput}
           onChange={handleMobileInput}
           onKeyDown={handleMobileKeyDown}
-          className="absolute opacity-0 pointer-events-none -z-10"
+          className="fixed opacity-0 pointer-events-none -z-10"
           style={{
-            position: "absolute",
-            left: "-9999px",
-            top: "-9999px",
+            position: "fixed",
+            left: "0px",
+            top: "0px",
             width: "1px",
             height: "1px",
+            border: "none",
+            background: "transparent",
+            outline: "none",
+            fontSize: "16px", // Prevents zoom on iOS
+            transform: "scale(0)",
           }}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck="false"
+          inputMode="text"
+          onFocus={() => {
+            if (inputFocus !== "terminal") {
+              onInputFocusChange("terminal");
+            }
+          }}
+          onBlur={() => {
+            // Don't lose focus immediately on mobile
+            if (isMobile && inputFocus === "terminal") {
+              setTimeout(() => {
+                hiddenInputRef.current?.focus();
+              }, 100);
+            }
+          }}
         />
       )}
     </div>

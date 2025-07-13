@@ -65,9 +65,12 @@ body {
   --textLink-foreground: var(--accent-color);
 }
 
+html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
+  overflow: hidden;
   background-color: var(--editor-bg);
   color: var(--text-primary);
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -75,6 +78,25 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+/* Fix mobile viewport issues */
+#__next {
+  height: 100%;
+}
+
+/* Mobile-specific viewport height handling */
+@supports (height: 100dvh) {
+  .mobile-safe-height {
+    height: 100dvh;
+  }
+}
+
+@supports not (height: 100dvh) {
+  .mobile-safe-height {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+  }
 }
 
 /* Custom blink animation for terminal cursor */
