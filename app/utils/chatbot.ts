@@ -29,7 +29,7 @@ let model: any = null;
 export function initializeGemini(apiKey: string) {
   try {
     genAI = new GoogleGenerativeAI(apiKey);
-    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     return true;
   } catch (error) {
     console.error("Failed to initialize Gemini:", error);

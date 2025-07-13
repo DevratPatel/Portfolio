@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import CodeEditor from "./components/CodeEditor";
 import PreviewPanel from "./components/PreviewPanel";
+import MobileTerminal from "./components/MobileTerminal";
 
 export default function Home() {
   const [activeFile, setActiveFile] = useState<string>("README.md");
@@ -16,7 +17,7 @@ export default function Home() {
   const [isTerminalVisible, setIsTerminalVisible] = useState(true);
   const [terminalHeight, setTerminalHeight] = useState(300);
   const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
+  const [isMobileTerminalVisible, setIsMobileTerminalVisible] = useState(true);
   const [inputFocus, setInputFocus] = useState<"terminal" | "notepad" | null>(
     "terminal"
   );
@@ -47,49 +48,15 @@ export default function Home() {
     }
   }, []);
 
-  // Handle mobile detection and force terminal visibility on mobile
+  // Handle mobile detection
   useEffect(() => {
     const checkMobile = () => {
-      // More aggressive mobile/tablet detection
       const isMobileSize = window.innerWidth < 768; // md breakpoint
-      const isTabletSize = window.innerWidth < 1024; // lg breakpoint
-      const isTouchDevice =
-        "ontouchstart" in window ||
-        navigator.maxTouchPoints > 0 ||
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        );
+      setIsMobile(isMobileSize);
 
-      // Separate mobile and tablet detection
-      const isTabletDevice = isTabletSize && isTouchDevice && !isMobileSize;
-      const isMobileOrTablet = isMobileSize || (isTabletSize && isTouchDevice);
-      console.log("Mobile detection:", {
-        isMobileSize,
-        isTabletSize,
-        isTouchDevice,
-        isTabletDevice,
-        isMobileOrTablet,
-        width: window.innerWidth,
-        userAgent: navigator.userAgent,
-      });
-      setIsMobile(isMobileSize); // Only phones are mobile
-      setIsTablet(isTabletDevice); // Tablets are separate
-
-      // Log the final state
-      console.log("Setting device states:", {
-        mobile: isMobileSize,
-        tablet: isTabletDevice,
-      });
-
-      // Force terminal to be visible on mobile and make it full screen
+      // Mobile terminal is always visible on mobile devices
       if (isMobileSize) {
-        setIsTerminalVisible(true);
-        // Set terminal height to full screen on mobile - use full viewport height
-        setTerminalHeight(window.innerHeight - 50); // Minimal padding for status
-      } else if (isTabletDevice) {
-        setIsTerminalVisible(true);
-        // Set normal terminal height for tablets
-        setTerminalHeight(250); // Normal terminal height for tablets
+        setIsMobileTerminalVisible(true);
       }
     };
 
@@ -297,7 +264,6 @@ export default function Home() {
             onToggleTerminal={toggleTerminal}
             onTerminalHeightChange={setTerminalHeight}
             isMobile={isMobile}
-            isTablet={isTablet}
             inputFocus={inputFocus}
             onInputFocusChange={setInputFocus}
           />
@@ -322,6 +288,14 @@ export default function Home() {
           <PreviewPanel />
         </div>
       </div>
+
+      {/* Mobile Terminal */}
+      {isMobile && (
+        <MobileTerminal
+          isVisible={isMobileTerminalVisible}
+          onToggle={() => setIsMobileTerminalVisible(!isMobileTerminalVisible)}
+        />
+      )}
 
       {/* Status Bar - Hidden on mobile and tablet */}
       <div className="hidden lg:flex h-6 bg-sidebar-bg border-t border-border-color items-center justify-between px-3 text-xs text-text-primary/60">

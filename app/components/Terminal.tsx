@@ -13,8 +13,6 @@ interface TerminalProps {
   onToggle: () => void;
   height: number;
   onHeightChange: (height: number) => void;
-  isMobile?: boolean;
-  isTablet?: boolean;
   inputFocus: "terminal" | "notepad" | null;
   onInputFocusChange: (focus: "terminal" | "notepad" | null) => void;
 }
@@ -66,8 +64,6 @@ export default function Terminal({
   onToggle,
   height,
   onHeightChange,
-  isMobile = false,
-  isTablet = false,
   inputFocus,
   onInputFocusChange,
 }: TerminalProps) {
@@ -81,7 +77,6 @@ export default function Terminal({
   const [typingLineId, setTypingLineId] = useState<string | null>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
-  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize terminal on mount
   useEffect(() => {
@@ -133,35 +128,15 @@ export default function Terminal({
 
   // Focus terminal when it becomes visible
   useEffect(() => {
-    if (isVisible && inputFocus === "terminal") {
-      if (isMobile || isTablet) {
-        // Focus the textbox for mobile/tablet
-        mobileInputRef.current?.focus();
-      } else if (terminalRef.current) {
-        // Focus the terminal div for desktop
-        terminalRef.current.focus();
-      }
+    if (isVisible && inputFocus === "terminal" && terminalRef.current) {
+      terminalRef.current.focus();
     }
-  }, [isVisible, isMobile, isTablet, inputFocus]);
-
-  // Auto-focus the textbox on mobile/tablet when terminal is selected
-  useEffect(() => {
-    if (
-      (isMobile || isTablet) &&
-      inputFocus === "terminal" &&
-      mobileInputRef.current
-    ) {
-      mobileInputRef.current.focus();
-    }
-  }, [inputFocus, isMobile, isTablet]);
+  }, [isVisible, inputFocus]);
 
   // Handle terminal focus and keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isVisible || typingLineId || inputFocus !== "terminal") return; // Only handle when terminal is in focus
-
-      // Skip if the event is coming from the mobile input (mobile/tablet)
-      if ((isMobile || isTablet) && e.target === mobileInputRef.current) return;
+      if (!isVisible || typingLineId || inputFocus !== "terminal") return;
 
       if (e.key === "Enter") {
         e.preventDefault();
@@ -203,33 +178,12 @@ export default function Terminal({
       }
     };
 
-    const handleTouchStart = (e: TouchEvent) => {
-      if (isVisible && terminalRef.current && !typingLineId) {
-        const target = e.target as HTMLElement;
-        if (terminalRef.current.contains(target)) {
-          onInputFocusChange("terminal");
-        }
-      }
-    };
-
-    if (!isMobile && !isTablet) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
+    document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("click", handleClick);
-    document.addEventListener("touchstart", handleTouchStart);
-
-    // Add additional touch event handling for mobile/tablet
-    if (isMobile || isTablet) {
-      document.addEventListener("touchend", handleTouchStart);
-    }
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("click", handleClick);
-      document.removeEventListener("touchstart", handleTouchStart);
-      if (isMobile || isTablet) {
-        document.removeEventListener("touchend", handleTouchStart);
-      }
     };
   }, [
     isVisible,
@@ -239,48 +193,7 @@ export default function Terminal({
     typingLineId,
     inputFocus,
     onInputFocusChange,
-    isMobile,
-    isTablet,
   ]);
-
-  // Handle mobile/tablet input
-  const handleMobileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if ((!isMobile && !isTablet) || inputFocus !== "terminal") return;
-    const newValue = e.target.value;
-    setCurrentInput(newValue);
-    // Reset history index when typing
-    setHistoryIndex(-1);
-  };
-
-  const handleMobileKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((!isMobile && !isTablet) || inputFocus !== "terminal") return;
-
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleCommand(currentInput);
-      setCurrentInput("");
-      // Keep focus on the input after processing command
-      setTimeout(() => mobileInputRef.current?.focus(), 100);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      if (commandHistory.length > 0) {
-        const newIndex =
-          historyIndex === -1
-            ? commandHistory.length - 1
-            : Math.max(0, historyIndex - 1);
-        setHistoryIndex(newIndex);
-        setCurrentInput(commandHistory[newIndex]);
-      }
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (historyIndex !== -1) {
-        const newIndex =
-          historyIndex === commandHistory.length - 1 ? -1 : historyIndex + 1;
-        setHistoryIndex(newIndex);
-        setCurrentInput(newIndex === -1 ? "" : commandHistory[newIndex]);
-      }
-    }
-  };
 
   const handleMouseDown = () => {
     setIsDragging(true);
@@ -306,9 +219,6 @@ export default function Terminal({
   };
 
   useEffect(() => {
-    // Don't add resize handlers on mobile, but allow on tablets
-    if (isMobile && !isTablet) return;
-
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
@@ -324,7 +234,7 @@ export default function Terminal({
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "default";
     };
-  }, [isDragging, isMobile]);
+  }, [isDragging]);
 
   const handleCommand = async (command: string) => {
     if (!command.trim()) return;
@@ -469,15 +379,13 @@ Examples:
       className={`terminal-container relative bg-panel-bg flex flex-col ${
         inputFocus === "terminal" ? "ring-2 ring-blue-500/50" : ""
       }`}
-      style={{ height: isMobile && !isTablet ? "100%" : `${height}px` }}
+      style={{ height: `${height}px` }}
     >
-      {/* Resize Handle - Hidden on mobile and tablets */}
-      {!isMobile && !isTablet && (
-        <div
-          className="h-[1px] bg-border-color cursor-row-resize hover:bg-text-keyword transition-colors flex-shrink-0"
-          onMouseDown={handleMouseDown}
-        />
-      )}
+      {/* Resize Handle */}
+      <div
+        className="h-[1px] bg-border-color cursor-row-resize hover:bg-text-keyword transition-colors flex-shrink-0"
+        onMouseDown={handleMouseDown}
+      />
 
       {/* Terminal Header */}
       <div className="flex items-center justify-between p-2 border-b border-border-color flex-shrink-0">
@@ -485,15 +393,12 @@ Examples:
           <VscTerminalBash size={16} className="text-text-primary" />
           <span className="text-sm text-text-primary">Terminal</span>
         </div>
-        {/* Close button - Hidden on mobile, shown on tablets */}
-        {(!isMobile || isTablet) && (
-          <button
-            onClick={onToggle}
-            className="p-1 hover:bg-border-color rounded"
-          >
-            <VscChromeClose size={14} className="text-text-primary" />
-          </button>
-        )}
+        <button
+          onClick={onToggle}
+          className="p-1 hover:bg-border-color rounded"
+        >
+          <VscChromeClose size={14} className="text-text-primary" />
+        </button>
       </div>
 
       {/* Terminal Output */}
@@ -502,9 +407,6 @@ Examples:
         className="flex-1 overflow-auto bg-black p-4 font-mono text-xs min-h-0 focus:outline-none cursor-text"
         tabIndex={0}
         onClick={() => {
-          onInputFocusChange("terminal");
-        }}
-        onTouchStart={() => {
           onInputFocusChange("terminal");
         }}
       >
@@ -606,30 +508,6 @@ Examples:
 
         <div ref={terminalEndRef} />
       </div>
-
-      {/* Simple textbox for mobile/tablet */}
-      {(isMobile || isTablet) && (
-        <div className="p-2 border-t border-border-color bg-panel-bg">
-          <input
-            ref={mobileInputRef}
-            type="text"
-            value={currentInput}
-            onChange={handleMobileInput}
-            onKeyDown={handleMobileKeyDown}
-            className="w-full p-2 bg-black text-green-400 border border-border-color rounded font-mono text-sm"
-            placeholder="Type your command or question here..."
-            style={{ fontSize: "16px" }} // Prevents zoom on iOS
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck="false"
-            inputMode="text"
-            onFocus={() => {
-              onInputFocusChange("terminal");
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }
