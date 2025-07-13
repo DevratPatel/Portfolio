@@ -745,18 +745,17 @@ Examples:
             className="fixed opacity-0 pointer-events-none -z-10"
             style={{
               position: "absolute",
-              left: "0px",
-              top: "0px",
+              left: "0",
+              bottom: "0",
               width: "1px",
               height: "1px",
               border: "none",
               background: "transparent",
               outline: "none",
               fontSize: "16px", // Prevents zoom on iOS
-              transform: "scale(0)",
-              zIndex: -1000,
-              visibility: "hidden",
+              opacity: 0,
               pointerEvents: "none",
+              zIndex: -1,
             }}
             autoComplete="off"
             autoCorrect="off"
@@ -793,26 +792,6 @@ Examples:
               );
             }}
           />
-          {/* Temporary visible input for debugging on tablets */}
-          {isTablet && (
-            <div className="fixed top-4 left-4 z-50 bg-black p-2 text-white text-xs">
-              <div>Debug: Tablet detected</div>
-              <input
-                type="text"
-                value={currentInput}
-                onChange={handleMobileInput}
-                onKeyDown={handleMobileKeyDown}
-                className="bg-gray-800 text-white p-1 text-xs rounded"
-                placeholder="Type here (debug)"
-                style={{ fontSize: "16px" }}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-                inputMode="text"
-              />
-            </div>
-          )}
         </>
       )}
     </div>
