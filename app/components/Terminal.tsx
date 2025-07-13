@@ -82,7 +82,6 @@ export default function Terminal({
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
-  const bodyStylesApplied = useRef<boolean>(false);
 
   // Initialize terminal on mount
   useEffect(() => {
@@ -174,52 +173,17 @@ export default function Terminal({
         isTablet,
       });
 
-      // Store original scroll position and prevent body scrolling
-      if (!bodyStylesApplied.current) {
-        const originalScrollY = window.scrollY;
-        document.body.style.overflow = "hidden";
-        document.body.style.position = "fixed";
-        document.body.style.top = `-${originalScrollY}px`;
-        document.body.style.width = "100%";
-        bodyStylesApplied.current = true;
-      }
+      // Immediate focus on the hidden input to trigger keyboard
+      hiddenInputRef.current.focus();
+      hiddenInputRef.current.click();
 
-      // Multiple attempts to focus the input
-      const focusInput = () => {
-        if (hiddenInputRef.current) {
-          hiddenInputRef.current.focus();
-          hiddenInputRef.current.click();
-        }
-      };
-
-      // Immediate focus
-      focusInput();
-
-      // Delayed focus attempts
-      setTimeout(focusInput, 50);
-      setTimeout(focusInput, 100);
-      setTimeout(focusInput, 200);
+      // Small delayed refocus for reliability on some devices
+      setTimeout(() => hiddenInputRef.current?.focus(), 50);
     } else if ((isMobile || isTablet) && inputFocus !== "terminal") {
-      // Restore body scroll when not focused on terminal
-      if (bodyStylesApplied.current) {
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        bodyStylesApplied.current = false;
-      }
+      // No special handling needed now
     }
-
-    // Cleanup effect to restore body styles
-    return () => {
-      if ((isMobile || isTablet) && bodyStylesApplied.current) {
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        bodyStylesApplied.current = false;
-      }
-    };
+    // No cleanup necessary
+    return () => {};
   }, [inputFocus, isMobile, isTablet]);
 
   // Handle terminal focus and keyboard events
@@ -267,10 +231,10 @@ export default function Terminal({
         // Check if click is within the terminal
         if (terminalRef.current.contains(target)) {
           onInputFocusChange("terminal");
-          if (isMobile && hiddenInputRef.current) {
-            hiddenInputRef.current.focus();
+          if (isMobile || isTablet) {
+            hiddenInputRef.current?.focus();
           } else {
-            terminalRef.current.focus();
+            terminalRef.current?.focus();
           }
         }
       }
@@ -279,20 +243,9 @@ export default function Terminal({
     const handleTouchStart = (e: TouchEvent) => {
       if (isVisible && terminalRef.current && !typingLineId) {
         const target = e.target as HTMLElement;
-        // Check if touch is within the terminal
         if (terminalRef.current.contains(target)) {
-          e.preventDefault(); // Prevent default touch behavior
           onInputFocusChange("terminal");
-          if (hiddenInputRef.current) {
-            // Use setTimeout to ensure proper focus on mobile devices
-            setTimeout(() => {
-              hiddenInputRef.current?.focus();
-              // For iOS devices, trigger click to ensure keyboard appears
-              if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                hiddenInputRef.current?.click();
-              }
-            }, 50);
-          }
+          hiddenInputRef.current?.focus();
         }
       }
     };
@@ -345,6 +298,7 @@ export default function Terminal({
       setCurrentInput("");
       if (hiddenInputRef.current) {
         hiddenInputRef.current.value = "";
+        hiddenInputRef.current.focus();
       }
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -564,8 +518,8 @@ Examples:
       }`}
       style={{ height: isMobile && !isTablet ? "100%" : `${height}px` }}
     >
-      {/* Resize Handle - Hidden on mobile, shown on tablets */}
-      {(!isMobile || isTablet) && (
+      {/* Resize Handle - Hidden on mobile and tablets */}
+      {!isMobile && !isTablet && (
         <div
           className="h-[1px] bg-border-color cursor-row-resize hover:bg-text-keyword transition-colors flex-shrink-0"
           onMouseDown={handleMouseDown}
@@ -595,21 +549,9 @@ Examples:
         className="flex-1 overflow-auto bg-black p-4 font-mono text-xs min-h-0 focus:outline-none cursor-text"
         tabIndex={0}
         onClick={() => {
-          console.log("Terminal area clicked", { isMobile, isTablet });
           onInputFocusChange("terminal");
-          if ((isMobile || isTablet) && hiddenInputRef.current) {
-            const focusInput = () => {
-              if (hiddenInputRef.current) {
-                hiddenInputRef.current.focus();
-                hiddenInputRef.current.click();
-              }
-            };
-
-            // Immediate focus
-            focusInput();
-            // Delayed focus attempts
-            setTimeout(focusInput, 50);
-            setTimeout(focusInput, 100);
+          if (isMobile || isTablet) {
+            hiddenInputRef.current?.focus();
           } else {
             terminalRef.current?.focus();
           }
@@ -630,7 +572,6 @@ Examples:
             focusInput();
             // Delayed focus attempts
             setTimeout(focusInput, 50);
-            setTimeout(focusInput, 100);
           }
         }}
       >
@@ -754,7 +695,7 @@ Examples:
               outline: "none",
               fontSize: "16px", // Prevents zoom on iOS
               opacity: 0,
-              pointerEvents: "none",
+              pointerEvents: "auto",
               zIndex: -1,
             }}
             autoComplete="off"
@@ -777,13 +718,7 @@ Examples:
                 "Hidden input blurred - not refocusing automatically"
               );
               // Restore body scroll when keyboard disappears
-              if ((isMobile || isTablet) && bodyStylesApplied.current) {
-                document.body.style.overflow = "";
-                document.body.style.position = "";
-                document.body.style.top = "";
-                document.body.style.width = "";
-                bodyStylesApplied.current = false;
-              }
+              // No special handling needed now
             }}
             onInput={(e) => {
               console.log(
