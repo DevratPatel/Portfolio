@@ -14,6 +14,8 @@ interface TerminalProps {
   height: number;
   onHeightChange: (height: number) => void;
   isMobile?: boolean;
+  inputFocus: "terminal" | "notepad" | null;
+  onInputFocusChange: (focus: "terminal" | "notepad" | null) => void;
 }
 
 interface TerminalLine {
@@ -64,6 +66,8 @@ export default function Terminal({
   height,
   onHeightChange,
   isMobile = false,
+  inputFocus,
+  onInputFocusChange,
 }: TerminalProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [lines, setLines] = useState<TerminalLine[]>([]);
@@ -134,7 +138,7 @@ export default function Terminal({
   // Handle terminal focus and keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isVisible || typingLineId) return; // Disable input while typing
+      if (!isVisible || typingLineId || inputFocus !== "terminal") return; // Only handle when terminal is in focus
 
       if (e.key === "Enter") {
         e.preventDefault();
@@ -167,9 +171,14 @@ export default function Terminal({
       }
     };
 
-    const handleClick = () => {
+    const handleClick = (e: MouseEvent) => {
       if (isVisible && terminalRef.current && !typingLineId) {
-        terminalRef.current.focus();
+        const target = e.target as HTMLElement;
+        // Check if click is within the terminal
+        if (terminalRef.current.contains(target)) {
+          onInputFocusChange("terminal");
+          terminalRef.current.focus();
+        }
       }
     };
 
@@ -180,7 +189,15 @@ export default function Terminal({
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("click", handleClick);
     };
-  }, [isVisible, currentInput, commandHistory, historyIndex, typingLineId]);
+  }, [
+    isVisible,
+    currentInput,
+    commandHistory,
+    historyIndex,
+    typingLineId,
+    inputFocus,
+    onInputFocusChange,
+  ]);
 
   const handleMouseDown = () => {
     setIsDragging(true);
@@ -366,7 +383,9 @@ Examples:
 
   return (
     <div
-      className="terminal-container relative bg-panel-bg flex flex-col"
+      className={`terminal-container relative bg-panel-bg flex flex-col ${
+        inputFocus === "terminal" ? "ring-2 ring-blue-500/50" : ""
+      }`}
       style={{ height: isMobile ? "100vh" : `${height}px` }}
     >
       {/* Resize Handle - Hidden on mobile */}

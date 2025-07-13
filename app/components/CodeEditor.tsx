@@ -29,6 +29,8 @@ interface CodeEditorProps {
   onToggleTerminal: () => void;
   onTerminalHeightChange: (height: number) => void;
   isMobile?: boolean;
+  inputFocus: "terminal" | "notepad" | null;
+  onInputFocusChange: (focus: "terminal" | "notepad" | null) => void;
 }
 
 export default function CodeEditor({
@@ -41,6 +43,8 @@ export default function CodeEditor({
   onToggleTerminal,
   onTerminalHeightChange,
   isMobile = false,
+  inputFocus,
+  onInputFocusChange,
 }: CodeEditorProps) {
   const [showEditMessage, setShowEditMessage] = useState(false);
 
@@ -1990,6 +1994,8 @@ export default function CodeEditor({
               height={terminalHeight}
               onHeightChange={onTerminalHeightChange}
               isMobile={isMobile}
+              inputFocus={inputFocus}
+              onInputFocusChange={onInputFocusChange}
             />
           </div>
         )}

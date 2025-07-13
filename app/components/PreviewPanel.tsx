@@ -30,22 +30,35 @@ export default function PreviewPanel() {
             <p className="text-lg text-text-primary/80 mb-4">{resume.role}</p>
 
             <div className="flex flex-wrap justify-center gap-4 text-sm text-text-primary/70">
-              <div className="flex items-center gap-1">
+              <a
+                href={`mailto:${resume.email}`}
+                className="flex items-center gap-1 hover:text-text-keyword transition-colors"
+              >
                 <FiMail size={14} />
                 <span>{resume.email}</span>
-              </div>
+              </a>
               <div className="flex items-center gap-1">
                 <FiMapPin size={14} />
                 <span>Arlington, TX</span>
               </div>
-              <div className="flex items-center gap-1">
+              <a
+                href={`https://${resume.github}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:text-text-keyword transition-colors"
+              >
                 <FiGithub size={14} />
                 <span>GitHub</span>
-              </div>
-              <div className="flex items-center gap-1">
+              </a>
+              <a
+                href={`https://${resume.linkedin}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:text-text-keyword transition-colors"
+              >
                 <FiLinkedin size={14} />
                 <span>LinkedIn</span>
-              </div>
+              </a>
             </div>
           </div>
 

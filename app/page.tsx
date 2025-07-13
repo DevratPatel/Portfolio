@@ -16,6 +16,9 @@ export default function Home() {
   const [isTerminalVisible, setIsTerminalVisible] = useState(true);
   const [terminalHeight, setTerminalHeight] = useState(300);
   const [isMobile, setIsMobile] = useState(false);
+  const [inputFocus, setInputFocus] = useState<"terminal" | "notepad" | null>(
+    "terminal"
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Load saved panel sizes from localStorage on mount
@@ -213,7 +216,12 @@ export default function Home() {
           className="hidden md:flex bg-sidebar-bg border-r border-border-color flex-col overflow-hidden"
           style={{ width: sidebarWidth }}
         >
-          <Sidebar activeFile={activeFile} onFileSelect={handleFileSelect} />
+          <Sidebar
+            activeFile={activeFile}
+            onFileSelect={handleFileSelect}
+            inputFocus={inputFocus}
+            onInputFocusChange={setInputFocus}
+          />
         </div>
 
         {/* Sidebar Resizer - Hidden on mobile */}
@@ -239,6 +247,8 @@ export default function Home() {
             onToggleTerminal={toggleTerminal}
             onTerminalHeightChange={setTerminalHeight}
             isMobile={isMobile}
+            inputFocus={inputFocus}
+            onInputFocusChange={setInputFocus}
           />
         </div>
 
