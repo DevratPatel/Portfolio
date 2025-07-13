@@ -3,7 +3,36 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Devrat Patel",
-  description: "Full-Stack Developer",
+  description: "Design is thinking made visual. And I Design.",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  keywords: [
+    "Devrat",
+    "Patel",
+    "Devrat Patel",
+    "Developer",
+    "Full Stack",
+    "Software",
+    "Software Engineer",
+    "ACM",
+    "ACM UTA",
+  ],
+  authors: [{ name: "Devrat Patel" }],
+  openGraph: {
+    title: "Devrat Patel",
+    description: `Design is thinking made visual. And I Design.`,
+    url: "https://www.devratpatel.com",
+    type: "website",
+    images: [
+      {
+        url: "../public/dp logo.svg",
+        width: 1200,
+        height: 630,
+        alt: "Devrat Patel",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
