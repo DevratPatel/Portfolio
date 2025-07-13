@@ -79,6 +79,7 @@ export default function Terminal({
   const [typingLineId, setTypingLineId] = useState<string | null>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize terminal on mount
   useEffect(() => {
@@ -130,15 +131,38 @@ export default function Terminal({
 
   // Focus terminal when it becomes visible
   useEffect(() => {
-    if (isVisible && terminalRef.current) {
-      terminalRef.current.focus();
+    if (isVisible) {
+      if (isMobile && hiddenInputRef.current && inputFocus === "terminal") {
+        hiddenInputRef.current.focus();
+      } else if (!isMobile && terminalRef.current) {
+        terminalRef.current.focus();
+      }
     }
-  }, [isVisible]);
+  }, [isVisible, isMobile, inputFocus]);
+
+  // Sync hidden input value with current input
+  useEffect(() => {
+    if (isMobile && hiddenInputRef.current) {
+      hiddenInputRef.current.value = currentInput;
+    }
+  }, [currentInput, isMobile]);
+
+  // Focus hidden input when terminal gains focus on mobile
+  useEffect(() => {
+    if (isMobile && inputFocus === "terminal" && hiddenInputRef.current) {
+      setTimeout(() => {
+        hiddenInputRef.current?.focus();
+      }, 100);
+    }
+  }, [inputFocus, isMobile]);
 
   // Handle terminal focus and keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isVisible || typingLineId || inputFocus !== "terminal") return; // Only handle when terminal is in focus
+
+      // Skip if the event is coming from the hidden input (mobile)
+      if (isMobile && e.target === hiddenInputRef.current) return;
 
       if (e.key === "Enter") {
         e.preventDefault();
@@ -177,17 +201,38 @@ export default function Terminal({
         // Check if click is within the terminal
         if (terminalRef.current.contains(target)) {
           onInputFocusChange("terminal");
-          terminalRef.current.focus();
+          if (isMobile && hiddenInputRef.current) {
+            hiddenInputRef.current.focus();
+          } else {
+            terminalRef.current.focus();
+          }
         }
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
+    const handleTouchStart = (e: TouchEvent) => {
+      if (isVisible && terminalRef.current && !typingLineId) {
+        const target = e.target as HTMLElement;
+        // Check if touch is within the terminal
+        if (terminalRef.current.contains(target)) {
+          onInputFocusChange("terminal");
+          if (hiddenInputRef.current) {
+            hiddenInputRef.current.focus();
+          }
+        }
+      }
+    };
+
+    if (!isMobile) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
     document.addEventListener("click", handleClick);
+    document.addEventListener("touchstart", handleTouchStart);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("click", handleClick);
+      document.removeEventListener("touchstart", handleTouchStart);
     };
   }, [
     isVisible,
@@ -197,7 +242,54 @@ export default function Terminal({
     typingLineId,
     inputFocus,
     onInputFocusChange,
+    isMobile,
   ]);
+
+  // Handle mobile input
+  const handleMobileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isMobile || inputFocus !== "terminal") return;
+    const newValue = e.target.value;
+    setCurrentInput(newValue);
+  };
+
+  const handleMobileKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isMobile || inputFocus !== "terminal") return;
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleCommand(currentInput);
+      setCurrentInput("");
+      if (hiddenInputRef.current) {
+        hiddenInputRef.current.value = "";
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const newIndex =
+          historyIndex === -1
+            ? commandHistory.length - 1
+            : Math.max(0, historyIndex - 1);
+        setHistoryIndex(newIndex);
+        const newInput = commandHistory[newIndex];
+        setCurrentInput(newInput);
+        if (hiddenInputRef.current) {
+          hiddenInputRef.current.value = newInput;
+        }
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIndex !== -1) {
+        const newIndex =
+          historyIndex === commandHistory.length - 1 ? -1 : historyIndex + 1;
+        setHistoryIndex(newIndex);
+        const newInput = newIndex === -1 ? "" : commandHistory[newIndex];
+        setCurrentInput(newInput);
+        if (hiddenInputRef.current) {
+          hiddenInputRef.current.value = newInput;
+        }
+      }
+    }
+  };
 
   const handleMouseDown = () => {
     setIsDragging(true);
@@ -418,7 +510,20 @@ Examples:
         ref={terminalRef}
         className="flex-1 overflow-auto bg-black p-4 font-mono text-xs min-h-0 focus:outline-none cursor-text"
         tabIndex={0}
-        onClick={() => terminalRef.current?.focus()}
+        onClick={() => {
+          onInputFocusChange("terminal");
+          if (isMobile && hiddenInputRef.current) {
+            hiddenInputRef.current.focus();
+          } else {
+            terminalRef.current?.focus();
+          }
+        }}
+        onTouchStart={() => {
+          onInputFocusChange("terminal");
+          if (isMobile && hiddenInputRef.current) {
+            hiddenInputRef.current.focus();
+          }
+        }}
       >
         {/* Initial welcome command */}
         <div className="mb-1">
@@ -518,6 +623,29 @@ Examples:
 
         <div ref={terminalEndRef} />
       </div>
+
+      {/* Hidden input for mobile keyboard capture */}
+      {isMobile && (
+        <input
+          ref={hiddenInputRef}
+          type="text"
+          value={currentInput}
+          onChange={handleMobileInput}
+          onKeyDown={handleMobileKeyDown}
+          className="absolute opacity-0 pointer-events-none -z-10"
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            top: "-9999px",
+            width: "1px",
+            height: "1px",
+          }}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+        />
+      )}
     </div>
   );
 }
