@@ -9,7 +9,7 @@ export default function Home() {
   const [activeFile, setActiveFile] = useState<string>("README.md");
   const [openFiles, setOpenFiles] = useState<string[]>(["README.md"]);
   const [sidebarWidth, setSidebarWidth] = useState(256); // 16rem = 256px
-  const [previewWidth, setPreviewWidth] = useState(450); // Default preview width
+  const [previewWidth, setPreviewWidth] = useState(370); // Default preview width
   const [isDragging, setIsDragging] = useState<"sidebar" | "preview" | null>(
     null
   );
@@ -74,6 +74,12 @@ export default function Home() {
       });
       setIsMobile(isMobileSize); // Only phones are mobile
       setIsTablet(isTabletDevice); // Tablets are separate
+
+      // Log the final state
+      console.log("Setting device states:", {
+        mobile: isMobileSize,
+        tablet: isTabletDevice,
+      });
 
       // Force terminal to be visible on mobile and make it full screen
       if (isMobileSize) {

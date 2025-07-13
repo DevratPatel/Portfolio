@@ -82,6 +82,7 @@ export default function Terminal({
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const bodyStylesApplied = useRef<boolean>(false);
 
   // Initialize terminal on mount
   useEffect(() => {
@@ -140,6 +141,7 @@ export default function Terminal({
         inputFocus === "terminal"
       ) {
         console.log("Mobile/tablet terminal focusing input");
+
         setTimeout(() => {
           hiddenInputRef.current?.focus();
           // Additional trigger for iOS devices
@@ -167,21 +169,57 @@ export default function Terminal({
       inputFocus === "terminal" &&
       hiddenInputRef.current
     ) {
-      console.log("Mobile/tablet terminal input focus change");
-      // Immediate focus attempt
-      hiddenInputRef.current.focus();
-      // Additional trigger for iOS devices
-      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        hiddenInputRef.current.click();
+      console.log("Mobile/tablet terminal input focus change", {
+        isMobile,
+        isTablet,
+      });
+
+      // Store original scroll position and prevent body scrolling
+      if (!bodyStylesApplied.current) {
+        const originalScrollY = window.scrollY;
+        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${originalScrollY}px`;
+        document.body.style.width = "100%";
+        bodyStylesApplied.current = true;
       }
-      // Delayed focus as backup
-      setTimeout(() => {
-        hiddenInputRef.current?.focus();
-        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-          hiddenInputRef.current?.click();
+
+      // Multiple attempts to focus the input
+      const focusInput = () => {
+        if (hiddenInputRef.current) {
+          hiddenInputRef.current.focus();
+          hiddenInputRef.current.click();
         }
-      }, 100);
+      };
+
+      // Immediate focus
+      focusInput();
+
+      // Delayed focus attempts
+      setTimeout(focusInput, 50);
+      setTimeout(focusInput, 100);
+      setTimeout(focusInput, 200);
+    } else if ((isMobile || isTablet) && inputFocus !== "terminal") {
+      // Restore body scroll when not focused on terminal
+      if (bodyStylesApplied.current) {
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        bodyStylesApplied.current = false;
+      }
     }
+
+    // Cleanup effect to restore body styles
+    return () => {
+      if ((isMobile || isTablet) && bodyStylesApplied.current) {
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        bodyStylesApplied.current = false;
+      }
+    };
   }, [inputFocus, isMobile, isTablet]);
 
   // Handle terminal focus and keyboard events
@@ -557,30 +595,42 @@ Examples:
         className="flex-1 overflow-auto bg-black p-4 font-mono text-xs min-h-0 focus:outline-none cursor-text"
         tabIndex={0}
         onClick={() => {
+          console.log("Terminal area clicked", { isMobile, isTablet });
           onInputFocusChange("terminal");
           if ((isMobile || isTablet) && hiddenInputRef.current) {
-            setTimeout(() => {
-              hiddenInputRef.current?.focus();
-              // For iOS devices, trigger click to ensure keyboard appears
-              if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                hiddenInputRef.current?.click();
+            const focusInput = () => {
+              if (hiddenInputRef.current) {
+                hiddenInputRef.current.focus();
+                hiddenInputRef.current.click();
               }
-            }, 50);
+            };
+
+            // Immediate focus
+            focusInput();
+            // Delayed focus attempts
+            setTimeout(focusInput, 50);
+            setTimeout(focusInput, 100);
           } else {
             terminalRef.current?.focus();
           }
         }}
         onTouchStart={(e) => {
           e.preventDefault(); // Prevent default touch behavior
+          console.log("Terminal area touched", { isMobile, isTablet });
           onInputFocusChange("terminal");
           if ((isMobile || isTablet) && hiddenInputRef.current) {
-            setTimeout(() => {
-              hiddenInputRef.current?.focus();
-              // For iOS devices, trigger click to ensure keyboard appears
-              if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                hiddenInputRef.current?.click();
+            const focusInput = () => {
+              if (hiddenInputRef.current) {
+                hiddenInputRef.current.focus();
+                hiddenInputRef.current.click();
               }
-            }, 50);
+            };
+
+            // Immediate focus
+            focusInput();
+            // Delayed focus attempts
+            setTimeout(focusInput, 50);
+            setTimeout(focusInput, 100);
           }
         }}
       >
@@ -694,7 +744,7 @@ Examples:
             onKeyDown={handleMobileKeyDown}
             className="fixed opacity-0 pointer-events-none -z-10"
             style={{
-              position: "fixed",
+              position: "absolute",
               left: "0px",
               top: "0px",
               width: "1px",
@@ -704,24 +754,36 @@ Examples:
               outline: "none",
               fontSize: "16px", // Prevents zoom on iOS
               transform: "scale(0)",
+              zIndex: -1000,
+              visibility: "hidden",
+              pointerEvents: "none",
             }}
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck="false"
             inputMode="text"
-            onFocus={() => {
+            onFocus={(e) => {
+              console.log("Hidden input focused");
+              // Prevent scrolling on focus
+              e.preventDefault();
               if (inputFocus !== "terminal") {
                 onInputFocusChange("terminal");
               }
+              // Prevent any viewport changes
+              window.scrollTo(0, 0);
             }}
             onBlur={() => {
-              // Don't lose focus immediately on mobile/tablet
-              if ((isMobile || isTablet) && inputFocus === "terminal") {
-                console.log("Mobile/tablet input lost focus, refocusing");
-                setTimeout(() => {
-                  hiddenInputRef.current?.focus();
-                }, 100);
+              console.log(
+                "Hidden input blurred - not refocusing automatically"
+              );
+              // Restore body scroll when keyboard disappears
+              if ((isMobile || isTablet) && bodyStylesApplied.current) {
+                document.body.style.overflow = "";
+                document.body.style.position = "";
+                document.body.style.top = "";
+                document.body.style.width = "";
+                bodyStylesApplied.current = false;
               }
             }}
             onInput={(e) => {
@@ -731,20 +793,26 @@ Examples:
               );
             }}
           />
-          {/* Tap area for mobile input activation */}
-          <div
-            className="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded-lg shadow-lg z-50"
-            onClick={() => {
-              console.log("Mobile tap area clicked");
-              onInputFocusChange("terminal");
-              if (hiddenInputRef.current) {
-                hiddenInputRef.current.focus();
-                hiddenInputRef.current.click();
-              }
-            }}
-          >
-            📱 Tap to type
-          </div>
+          {/* Temporary visible input for debugging on tablets */}
+          {isTablet && (
+            <div className="fixed top-4 left-4 z-50 bg-black p-2 text-white text-xs">
+              <div>Debug: Tablet detected</div>
+              <input
+                type="text"
+                value={currentInput}
+                onChange={handleMobileInput}
+                onKeyDown={handleMobileKeyDown}
+                className="bg-gray-800 text-white p-1 text-xs rounded"
+                placeholder="Type here (debug)"
+                style={{ fontSize: "16px" }}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                inputMode="text"
+              />
+            </div>
+          )}
         </>
       )}
     </div>
