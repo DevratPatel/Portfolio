@@ -80,6 +80,9 @@ export default function Terminal({
   const terminalRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
 
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [showMobileInput, setShowMobileInput] = useState(false);
+
   // Initialize terminal on mount
   useEffect(() => {
     // Detect if device supports touch
