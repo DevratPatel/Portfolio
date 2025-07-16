@@ -163,13 +163,21 @@ export default function UnifiedTerminal({
       setIsKeyboardOpen(keyboardOpen);
       
       if (keyboardOpen && terminalEndRef.current) {
-        // Scroll to bottom with the keyboard open
+        // More aggressive scrolling to ensure chat stays above keyboard
         setTimeout(() => {
+          // Scroll to show the current input area above the keyboard
           terminalEndRef.current?.scrollIntoView({ 
             behavior: "smooth", 
-            block: "end" 
+            block: "end",
+            inline: "nearest"
           });
-        }, 100);
+          
+          // Additional scroll to compensate for keyboard height
+          if (terminalRef.current) {
+            const additionalScroll = keyboardHeight * 0.8; // 80% of keyboard height
+            terminalRef.current.scrollTop += additionalScroll;
+          }
+        }, 150);
       }
     };
 
@@ -576,7 +584,8 @@ Examples:
         }`}
         style={{
           paddingBottom: isKeyboardOpen ? '0px' : 'env(safe-area-inset-bottom)',
-          height: isKeyboardOpen ? '100vh' : '100dvh'
+          height: isKeyboardOpen ? 'auto' : '100dvh',
+          minHeight: isKeyboardOpen ? `${window.visualViewport?.height || window.innerHeight}px` : '100dvh'
         }}
       >
         {/* Header */}
@@ -610,8 +619,10 @@ Examples:
           onClick={handleTerminalClick}
           ref={terminalRef}
           style={{
-            // Adjust bottom padding when keyboard is open
-            paddingBottom: isKeyboardOpen ? '8px' : '16px'
+            // Adjust height when keyboard is open to ensure proper scrolling
+            height: isKeyboardOpen ? `${(window.visualViewport?.height || window.innerHeight) - 120}px` : 'auto',
+            maxHeight: isKeyboardOpen ? `${(window.visualViewport?.height || window.innerHeight) - 120}px` : 'none',
+            paddingBottom: isKeyboardOpen ? '60px' : '16px' // Extra padding to keep input visible
           }}
         >
           {/* Initial welcome command */}
@@ -707,7 +718,18 @@ Examples:
           value={currentInput}
           onChange={handleMobileInputChange}
           onKeyDown={handleMobileKeyDown}
-          onFocus={() => setIsKeyboardOpen(true)}
+          onFocus={() => {
+            setIsKeyboardOpen(true);
+            // Scroll to input area when keyboard opens
+            setTimeout(() => {
+              if (terminalEndRef.current) {
+                terminalEndRef.current.scrollIntoView({ 
+                  behavior: "smooth", 
+                  block: "end" 
+                });
+              }
+            }, 200);
+          }}
           onBlur={() => setIsKeyboardOpen(false)}
           className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
           autoComplete="off"
@@ -850,7 +872,18 @@ Examples:
           value={currentInput}
           onChange={handleMobileInputChange}
           onKeyDown={handleMobileKeyDown}
-          onFocus={() => setIsKeyboardOpen(true)}
+          onFocus={() => {
+            setIsKeyboardOpen(true);
+            // Scroll to input area when keyboard opens
+            setTimeout(() => {
+              if (terminalEndRef.current) {
+                terminalEndRef.current.scrollIntoView({ 
+                  behavior: "smooth", 
+                  block: "end" 
+                });
+              }
+            }, 200);
+          }}
           onBlur={() => setIsKeyboardOpen(false)}
           className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
           autoComplete="off"
