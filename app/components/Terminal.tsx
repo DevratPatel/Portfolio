@@ -75,11 +75,23 @@ export default function Terminal({
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isInitialized, setIsInitialized] = useState(false);
   const [typingLineId, setTypingLineId] = useState<string | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [showMobileInput, setShowMobileInput] = useState(false);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize terminal on mount
   useEffect(() => {
+    // Detect if device supports touch
+    const checkTouchDevice = () => {
+      setIsTouchDevice(
+        "ontouchstart" in window || navigator.maxTouchPoints > 0
+      );
+    };
+
+    checkTouchDevice();
+
     const welcomeLines: TerminalLine[] = [
       {
         id: "welcome-1",
@@ -128,10 +140,14 @@ export default function Terminal({
 
   // Focus terminal when it becomes visible
   useEffect(() => {
-    if (isVisible && inputFocus === "terminal" && terminalRef.current) {
-      terminalRef.current.focus();
+    if (isVisible && inputFocus === "terminal") {
+      if (isTouchDevice && hiddenInputRef.current) {
+        hiddenInputRef.current.focus();
+      } else if (terminalRef.current) {
+        terminalRef.current.focus();
+      }
     }
-  }, [isVisible, inputFocus]);
+  }, [isVisible, inputFocus, isTouchDevice]);
 
   // Handle terminal focus and keyboard events
   useEffect(() => {
@@ -174,16 +190,39 @@ export default function Terminal({
         const target = e.target as HTMLElement;
         if (terminalRef.current.contains(target)) {
           onInputFocusChange("terminal");
+
+          // For touch devices, focus the hidden input
+          if (isTouchDevice && hiddenInputRef.current) {
+            hiddenInputRef.current.focus();
+            setShowMobileInput(true);
+          }
+        }
+      }
+    };
+
+    const handleTouch = (e: TouchEvent) => {
+      if (isVisible && terminalRef.current && !typingLineId) {
+        const target = e.target as HTMLElement;
+        if (terminalRef.current.contains(target)) {
+          onInputFocusChange("terminal");
+
+          // For touch devices, focus the hidden input
+          if (isTouchDevice && hiddenInputRef.current) {
+            hiddenInputRef.current.focus();
+            setShowMobileInput(true);
+          }
         }
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("click", handleClick);
+    document.addEventListener("touchstart", handleTouch);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("click", handleClick);
+      document.removeEventListener("touchstart", handleTouch);
     };
   }, [
     isVisible,
@@ -193,6 +232,7 @@ export default function Terminal({
     typingLineId,
     inputFocus,
     onInputFocusChange,
+    isTouchDevice,
   ]);
 
   const handleMouseDown = () => {
@@ -366,6 +406,51 @@ Examples:
     );
   };
 
+  // Handle hidden input for touch devices
+  const handleHiddenInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setCurrentInput(newValue);
+    setHistoryIndex(-1);
+  };
+
+  const handleHiddenInputKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (currentInput.trim()) {
+        handleCommand(currentInput);
+        setCurrentInput("");
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const newIndex =
+          historyIndex === -1
+            ? commandHistory.length - 1
+            : Math.max(0, historyIndex - 1);
+        setHistoryIndex(newIndex);
+        setCurrentInput(commandHistory[newIndex]);
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIndex !== -1) {
+        const newIndex =
+          historyIndex === commandHistory.length - 1 ? -1 : historyIndex + 1;
+        setHistoryIndex(newIndex);
+        setCurrentInput(newIndex === -1 ? "" : commandHistory[newIndex]);
+      }
+    }
+  };
+
+  const handleHiddenInputFocus = () => {
+    setShowMobileInput(true);
+  };
+
+  const handleHiddenInputBlur = () => {
+    setShowMobileInput(false);
+  };
+
   const renderPrompt = () => (
     <span>
       <span className="text-cyan-400">devrat@portfolio:~$ </span>
@@ -508,6 +593,45 @@ Examples:
 
         <div ref={terminalEndRef} />
       </div>
+
+      {/* Hidden Input for Touch Devices */}
+      {isTouchDevice && (
+        <input
+          ref={hiddenInputRef}
+          type="text"
+          value={currentInput}
+          onChange={handleHiddenInputChange}
+          onKeyDown={handleHiddenInputKeyDown}
+          onFocus={handleHiddenInputFocus}
+          onBlur={handleHiddenInputBlur}
+          className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          inputMode="text"
+          style={{ fontSize: "16px" }}
+        />
+      )}
+
+      {/* Mobile Input Overlay for Touch Devices */}
+      {isTouchDevice && showMobileInput && (
+        <div className="absolute bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-border-color p-2 flex items-center gap-2">
+          <span className="text-cyan-400 text-xs">devrat@portfolio:~$</span>
+          <span className="text-green-400 text-xs flex-1">{currentInput}</span>
+          <button
+            onClick={() => {
+              if (hiddenInputRef.current) {
+                hiddenInputRef.current.focus();
+              }
+            }}
+            className="text-blue-400 text-xs px-2 py-1 border border-blue-400 rounded hover:bg-blue-400/20"
+            disabled={typingLineId !== null}
+          >
+            Focus
+          </button>
+        </div>
+      )}
     </div>
   );
 }

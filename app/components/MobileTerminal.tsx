@@ -69,6 +69,8 @@ export default function MobileTerminal({
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // Initialize terminal on mount
   useEffect(() => {
@@ -135,6 +137,75 @@ export default function MobileTerminal({
     if (isVisible && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
+  }, [isVisible]);
+
+  // Handle virtual keyboard detection and viewport changes
+  useEffect(() => {
+    const handleResize = () => {
+      const viewport = window.visualViewport;
+      if (viewport) {
+        const keyboardHeight = window.innerHeight - viewport.height;
+        setKeyboardHeight(keyboardHeight);
+        setIsKeyboardVisible(keyboardHeight > 0);
+
+        // Scroll to bottom when keyboard shows/hides
+        if (isVisible) {
+          setTimeout(() => scrollToBottom(), 100);
+        }
+      }
+    };
+
+    const handleViewportChange = () => {
+      if (window.visualViewport) {
+        const keyboardHeight =
+          window.innerHeight - window.visualViewport.height;
+        setKeyboardHeight(keyboardHeight);
+        setIsKeyboardVisible(keyboardHeight > 0);
+
+        // Scroll to bottom when keyboard shows/hides
+        if (isVisible) {
+          setTimeout(() => scrollToBottom(), 100);
+        }
+      }
+    };
+
+    // iOS-specific handling
+    const handleFocusIn = () => {
+      setIsKeyboardVisible(true);
+      setTimeout(() => {
+        if (isVisible && inputRef.current) {
+          inputRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+      }, 300);
+    };
+
+    const handleFocusOut = () => {
+      setIsKeyboardVisible(false);
+      setTimeout(() => scrollToBottom(), 100);
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleViewportChange);
+    }
+
+    window.addEventListener("resize", handleResize);
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener(
+          "resize",
+          handleViewportChange
+        );
+      }
+      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+    };
   }, [isVisible]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -328,7 +399,13 @@ Examples:
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col md:hidden">
+    <div
+      className="mobile-terminal fixed inset-0 z-50 bg-black flex flex-col md:hidden"
+      style={{
+        paddingBottom: isKeyboardVisible ? `${keyboardHeight}px` : "0px",
+        transition: "padding-bottom 0.3s ease-in-out",
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-border-color bg-panel-bg">
         <div className="flex items-center gap-2">
@@ -346,8 +423,13 @@ Examples:
 
       {/* Terminal Content - Clickable to open keyboard */}
       <div
-        className="flex-1 overflow-auto flex flex-col"
+        className="flex-1 overflow-auto flex flex-col min-h-0"
         onClick={handleTerminalClick}
+        style={{
+          maxHeight: isKeyboardVisible
+            ? `calc(100vh - ${keyboardHeight}px - 120px)`
+            : "auto",
+        }}
       >
         {/* Terminal Output - Takes remaining space and positions content at bottom */}
         <div
@@ -463,14 +545,37 @@ Examples:
           value={currentInput}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
+          className="fixed bottom-0 left-0 w-full h-12 opacity-0 pointer-events-none z-10"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck="false"
           inputMode="text"
-          style={{ fontSize: "16px" }} // Prevents zoom on iOS
+          style={{
+            fontSize: "16px", // Prevents zoom on iOS
+            bottom: isKeyboardVisible ? `${keyboardHeight}px` : "0px",
+            transition: "bottom 0.3s ease-in-out",
+          }}
         />
+
+        {/* Input overlay for better UX */}
+        <div
+          className="mobile-terminal-overlay fixed left-0 right-0 bg-black/90 backdrop-blur-sm border-t border-border-color p-3 flex items-center gap-2"
+          style={{
+            bottom: isKeyboardVisible ? `${keyboardHeight}px` : "0px",
+            transition: "bottom 0.3s ease-in-out",
+          }}
+        >
+          <span className="text-cyan-400 text-sm">devrat@portfolio:~$</span>
+          <span className="text-green-400 text-sm flex-1">{currentInput}</span>
+          <button
+            onClick={handleTerminalClick}
+            className="text-blue-400 text-sm px-2 py-1 border border-blue-400 rounded"
+            disabled={typingLineId !== null}
+          >
+            Focus
+          </button>
+        </div>
       </div>
     </div>
   );
