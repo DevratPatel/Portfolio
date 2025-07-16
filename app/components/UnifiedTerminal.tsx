@@ -339,11 +339,7 @@ export default function UnifiedTerminal({
 
     // For touch devices, focus the hidden input
     if (isTouchDevice && hiddenInputRef.current) {
-      // Reset keyboard state first, then focus
-      setIsKeyboardOpen(false);
-      setTimeout(() => {
-        hiddenInputRef.current?.focus();
-      }, 50);
+      hiddenInputRef.current.focus();
     }
   };
 
@@ -741,24 +737,14 @@ Examples:
           onChange={handleMobileInputChange}
           onKeyDown={handleMobileKeyDown}
           onFocus={() => {
-            // Force keyboard state update
+            // Scroll to input area when keyboard opens
             setTimeout(() => {
-              setIsKeyboardOpen(true);
-              // Scroll to input area when keyboard opens
-              setTimeout(() => {
-                if (terminalEndRef.current) {
-                  terminalEndRef.current.scrollIntoView({
-                    behavior: "smooth",
-                    block: "end",
-                  });
-                }
-              }, 100);
-            }, 50);
-          }}
-          onBlur={() => {
-            // Reset keyboard state when input loses focus
-            setTimeout(() => {
-              setIsKeyboardOpen(false);
+              if (terminalEndRef.current) {
+                terminalEndRef.current.scrollIntoView({
+                  behavior: "smooth",
+                  block: "end",
+                });
+              }
             }, 100);
           }}
           className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
@@ -903,24 +889,14 @@ Examples:
           onChange={handleMobileInputChange}
           onKeyDown={handleMobileKeyDown}
           onFocus={() => {
-            // Force keyboard state update
+            // Scroll to input area when keyboard opens
             setTimeout(() => {
-              setIsKeyboardOpen(true);
-              // Scroll to input area when keyboard opens
-              setTimeout(() => {
-                if (terminalEndRef.current) {
-                  terminalEndRef.current.scrollIntoView({
-                    behavior: "smooth",
-                    block: "end",
-                  });
-                }
-              }, 100);
-            }, 50);
-          }}
-          onBlur={() => {
-            // Reset keyboard state when input loses focus
-            setTimeout(() => {
-              setIsKeyboardOpen(false);
+              if (terminalEndRef.current) {
+                terminalEndRef.current.scrollIntoView({
+                  behavior: "smooth",
+                  block: "end",
+                });
+              }
             }, 100);
           }}
           className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
