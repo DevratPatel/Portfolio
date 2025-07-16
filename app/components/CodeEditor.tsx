@@ -11,6 +11,7 @@ import {
   VscChevronUp,
 } from "react-icons/vsc";
 import Terminal from "./Terminal";
+import UnifiedTerminal from "./UnifiedTerminal";
 import {
   SiReact,
   SiTypescript,
@@ -1988,13 +1989,14 @@ export default function CodeEditor({
         {/* Terminal - Hidden on mobile (uses separate MobileTerminal) */}
         {isTerminalVisible && !isMobile && (
           <div className="border-t border-border-color">
-            <Terminal
+            <UnifiedTerminal
               isVisible={true}
               onToggle={onToggleTerminal}
               height={terminalHeight}
               onHeightChange={onTerminalHeightChange}
               inputFocus={inputFocus}
               onInputFocusChange={onInputFocusChange}
+              isMobile={false}
             />
           </div>
         )}

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import CodeEditor from "./components/CodeEditor";
 import PreviewPanel from "./components/PreviewPanel";
-import MobileTerminal from "./components/MobileTerminal";
+import UnifiedTerminal from "./components/UnifiedTerminal";
 
 export default function Home() {
   const [activeFile, setActiveFile] = useState<string>("README.md");
@@ -291,9 +291,14 @@ export default function Home() {
 
       {/* Mobile Terminal */}
       {isMobile && (
-        <MobileTerminal
+        <UnifiedTerminal
           isVisible={isMobileTerminalVisible}
           onToggle={() => setIsMobileTerminalVisible(!isMobileTerminalVisible)}
+          height={300}
+          onHeightChange={() => {}} // Not used in mobile mode
+          inputFocus={inputFocus}
+          onInputFocusChange={setInputFocus}
+          isMobile={true}
         />
       )}
 

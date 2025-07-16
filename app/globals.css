@@ -99,35 +99,36 @@ body {
   }
 }
 
-/* Mobile keyboard handling */
-@media (max-width: 768px) {
-  .mobile-terminal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 50;
-  }
+/* Unified Terminal - ChatGPT-like experience */
+.unified-terminal {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 
-  .mobile-terminal-content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    height: 100vh;
-    height: calc(var(--vh, 1vh) * 100);
-  }
+.unified-terminal-input {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
 
-  .mobile-terminal-overlay {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(4px);
-    border-top: 1px solid var(--border-color);
-    padding: 8px;
-    z-index: 60;
+/* Terminal cursor improvements */
+.terminal-cursor {
+  animation: terminal-blink 1s infinite;
+}
+
+@keyframes terminal-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
   }
 }
 
@@ -141,10 +142,14 @@ body {
     -webkit-appearance: none;
     appearance: none;
     border-radius: 0;
+    font-size: 16px; /* Prevents zoom on iOS */
   }
-}
 
-/* Custom blink animation for terminal cursor */
+  /* Improve touch targets */
+  .terminal-container {
+    min-height: 44px;
+  }
+} /* Custom blink animation for terminal cursor */
 @keyframes blink {
   0%,
   50% {

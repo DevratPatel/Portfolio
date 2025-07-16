@@ -8,13 +8,14 @@ import {
   isResumeRelated,
 } from "../utils/chatbot";
 
-interface TerminalProps {
+interface UnifiedTerminalProps {
   isVisible: boolean;
   onToggle: () => void;
   height: number;
   onHeightChange: (height: number) => void;
   inputFocus: "terminal" | "notepad" | null;
   onInputFocusChange: (focus: "terminal" | "notepad" | null) => void;
+  isMobile?: boolean;
 }
 
 interface TerminalLine {
@@ -59,14 +60,15 @@ function TypewriterText({
   );
 }
 
-export default function Terminal({
+export default function UnifiedTerminal({
   isVisible,
   onToggle,
   height,
   onHeightChange,
   inputFocus,
   onInputFocusChange,
-}: TerminalProps) {
+  isMobile = false,
+}: UnifiedTerminalProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [currentInput, setCurrentInput] = useState("");
@@ -75,22 +77,14 @@ export default function Terminal({
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isInitialized, setIsInitialized] = useState(false);
   const [typingLineId, setTypingLineId] = useState<string | null>(null);
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [isInputActive, setIsInputActive] = useState(false);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize terminal on mount
   useEffect(() => {
-    // Detect if device supports touch
-    const checkTouchDevice = () => {
-      setIsTouchDevice(
-        "ontouchstart" in window || navigator.maxTouchPoints > 0
-      );
-    };
-
-    checkTouchDevice();
-
     const welcomeLines: TerminalLine[] = [
       {
         id: "welcome-1",
@@ -134,31 +128,25 @@ export default function Terminal({
 
   // Auto-scroll to bottom
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [lines, currentInput]);
-
-  // Focus terminal when it becomes visible
-  useEffect(() => {
-    if (isVisible && inputFocus === "terminal") {
-      if (isTouchDevice && hiddenInputRef.current) {
-        hiddenInputRef.current.focus();
-      } else if (terminalRef.current) {
-        terminalRef.current.focus();
-      }
+    if (terminalEndRef.current) {
+      terminalEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [isVisible, inputFocus, isTouchDevice]);
+  }, [lines, currentInput, isProcessing]);
 
-  // Handle terminal focus and keyboard events
+  // Handle keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isVisible || typingLineId || inputFocus !== "terminal") return;
 
+      e.preventDefault();
+
       if (e.key === "Enter") {
-        e.preventDefault();
-        handleCommand(currentInput);
-        setCurrentInput("");
+        if (currentInput.trim()) {
+          handleCommand(currentInput);
+          setCurrentInput("");
+          setCursorPosition(0);
+        }
       } else if (e.key === "ArrowUp") {
-        e.preventDefault();
         if (commandHistory.length > 0) {
           const newIndex =
             historyIndex === -1
@@ -166,74 +154,95 @@ export default function Terminal({
               : Math.max(0, historyIndex - 1);
           setHistoryIndex(newIndex);
           setCurrentInput(commandHistory[newIndex]);
+          setCursorPosition(commandHistory[newIndex].length);
         }
       } else if (e.key === "ArrowDown") {
-        e.preventDefault();
         if (historyIndex !== -1) {
           const newIndex =
             historyIndex === commandHistory.length - 1 ? -1 : historyIndex + 1;
           setHistoryIndex(newIndex);
-          setCurrentInput(newIndex === -1 ? "" : commandHistory[newIndex]);
+          const newInput = newIndex === -1 ? "" : commandHistory[newIndex];
+          setCurrentInput(newInput);
+          setCursorPosition(newInput.length);
         }
+      } else if (e.key === "ArrowLeft") {
+        setCursorPosition(Math.max(0, cursorPosition - 1));
+      } else if (e.key === "ArrowRight") {
+        setCursorPosition(Math.min(currentInput.length, cursorPosition + 1));
       } else if (e.key === "Backspace") {
-        e.preventDefault();
-        setCurrentInput((prev) => prev.slice(0, -1));
+        if (cursorPosition > 0) {
+          const newInput =
+            currentInput.slice(0, cursorPosition - 1) +
+            currentInput.slice(cursorPosition);
+          setCurrentInput(newInput);
+          setCursorPosition(cursorPosition - 1);
+        }
+      } else if (e.key === "Delete") {
+        if (cursorPosition < currentInput.length) {
+          const newInput =
+            currentInput.slice(0, cursorPosition) +
+            currentInput.slice(cursorPosition + 1);
+          setCurrentInput(newInput);
+        }
+      } else if (e.key === "Home") {
+        setCursorPosition(0);
+      } else if (e.key === "End") {
+        setCursorPosition(currentInput.length);
       } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        setCurrentInput((prev) => prev + e.key);
-      }
-    };
-
-    const handleClick = (e: MouseEvent) => {
-      if (isVisible && terminalRef.current && !typingLineId) {
-        const target = e.target as HTMLElement;
-        if (terminalRef.current.contains(target)) {
-          onInputFocusChange("terminal");
-
-          // For touch devices, focus the hidden input
-          if (isTouchDevice && hiddenInputRef.current) {
-            hiddenInputRef.current.focus();
-            setShowMobileInput(true);
-          }
-        }
-      }
-    };
-
-    const handleTouch = (e: TouchEvent) => {
-      if (isVisible && terminalRef.current && !typingLineId) {
-        const target = e.target as HTMLElement;
-        if (terminalRef.current.contains(target)) {
-          onInputFocusChange("terminal");
-
-          // For touch devices, focus the hidden input
-          if (isTouchDevice && hiddenInputRef.current) {
-            hiddenInputRef.current.focus();
-            setShowMobileInput(true);
-          }
-        }
+        const newInput =
+          currentInput.slice(0, cursorPosition) +
+          e.key +
+          currentInput.slice(cursorPosition);
+        setCurrentInput(newInput);
+        setCursorPosition(cursorPosition + 1);
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("click", handleClick);
-    document.addEventListener("touchstart", handleTouch);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("click", handleClick);
-      document.removeEventListener("touchstart", handleTouch);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [
     isVisible,
     currentInput,
+    cursorPosition,
     commandHistory,
     historyIndex,
     typingLineId,
     inputFocus,
-    onInputFocusChange,
-    isTouchDevice,
   ]);
 
+  // Handle terminal click
+  const handleTerminalClick = () => {
+    if (!typingLineId) {
+      onInputFocusChange("terminal");
+      setIsInputActive(true);
+
+      // For mobile devices, focus the hidden input
+      if (isMobile && hiddenInputRef.current) {
+        hiddenInputRef.current.focus();
+      }
+    }
+  };
+
+  // Handle mobile input
+  const handleMobileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCurrentInput(value);
+    setCursorPosition(value.length);
+    setHistoryIndex(-1);
+  };
+
+  const handleMobileKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (currentInput.trim()) {
+        handleCommand(currentInput);
+        setCurrentInput("");
+        setCursorPosition(0);
+      }
+    }
+  };
+
+  // Handle resize
   const handleMouseDown = () => {
     setIsDragging(true);
   };
@@ -281,6 +290,7 @@ export default function Terminal({
     // Add command to history
     setCommandHistory((prev) => [...prev, command]);
     setHistoryIndex(-1);
+    setIsInputActive(false);
 
     // Add command line to terminal
     const commandLine: TerminalLine = {
@@ -403,51 +413,7 @@ Examples:
         line.id === lineId ? { ...line, isTyping: false } : line
       )
     );
-  };
-
-  // Handle hidden input for touch devices
-  const handleHiddenInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setCurrentInput(newValue);
-    setHistoryIndex(-1);
-  };
-
-  const handleHiddenInputKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (currentInput.trim()) {
-        handleCommand(currentInput);
-        setCurrentInput("");
-      }
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      if (commandHistory.length > 0) {
-        const newIndex =
-          historyIndex === -1
-            ? commandHistory.length - 1
-            : Math.max(0, historyIndex - 1);
-        setHistoryIndex(newIndex);
-        setCurrentInput(commandHistory[newIndex]);
-      }
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (historyIndex !== -1) {
-        const newIndex =
-          historyIndex === commandHistory.length - 1 ? -1 : historyIndex + 1;
-        setHistoryIndex(newIndex);
-        setCurrentInput(newIndex === -1 ? "" : commandHistory[newIndex]);
-      }
-    }
-  };
-
-  const handleHiddenInputFocus = () => {
-    setShowMobileInput(true);
-  };
-
-  const handleHiddenInputBlur = () => {
-    setShowMobileInput(false);
+    setIsInputActive(true);
   };
 
   const renderPrompt = () => (
@@ -456,11 +422,168 @@ Examples:
     </span>
   );
 
+  const renderCurrentInput = () => {
+    if (!isInputActive || typingLineId) return null;
+
+    const beforeCursor = currentInput.slice(0, cursorPosition);
+    const afterCursor = currentInput.slice(cursorPosition);
+
+    return (
+      <div className="flex items-start">
+        {renderPrompt()}
+        <span className="text-green-400">
+          &nbsp;{beforeCursor}
+          <span className="terminal-cursor inline-block w-2 h-3 bg-green-400" />
+          {afterCursor}
+        </span>
+      </div>
+    );
+  };
+
   if (!isVisible) return null;
 
+  // Mobile full-screen terminal
+  if (isMobile) {
+    return (
+      <div className="unified-terminal fixed inset-0 z-50 bg-black flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-3 border-b border-border-color bg-panel-bg">
+          <div className="flex items-center gap-2">
+            <VscTerminalBash size={16} className="text-text-primary" />
+            <span className="text-sm text-text-primary">Terminal</span>
+          </div>
+          <button
+            onClick={onToggle}
+            className="p-1 hover:bg-border-color rounded"
+          >
+            <VscChromeClose size={14} className="text-text-primary" />
+          </button>
+        </div>
+
+        {/* Profile Header */}
+        <div className="text-center py-2 bg-black">
+          <h1 className="text-2xl font-bold text-green-400 mb-2">
+            Devrat Patel
+          </h1>
+          <p className="text-gray-300 text-sm">Full Stack Developer</p>
+          <hr className="my-4 border-border-color" />
+        </div>
+
+        {/* Terminal Content */}
+        <div
+          className="unified-terminal-input flex-1 overflow-auto p-4 font-mono text-sm cursor-text"
+          onClick={handleTerminalClick}
+          ref={terminalRef}
+        >
+          {/* Initial welcome command */}
+          <div className="mb-2">
+            {renderPrompt()}
+            <span className="text-green-400">welcome</span>
+          </div>
+
+          {lines.map((line) => (
+            <div key={line.id} className="mb-2">
+              {line.type === "command" && (
+                <div className="flex items-start">
+                  {renderPrompt()}
+                  <span className="text-green-400">&nbsp;{line.content}</span>
+                </div>
+              )}
+              {line.type === "response" && (
+                <div className="my-2">
+                  {line.isTyping ? (
+                    <TypewriterText
+                      text={line.content}
+                      speed={10}
+                      onComplete={() => handleTypingComplete(line.id)}
+                      color="text-white"
+                    />
+                  ) : (
+                    <span className="text-white whitespace-pre-wrap">
+                      {line.content}
+                    </span>
+                  )}
+                </div>
+              )}
+              {line.type === "system" && (
+                <div className="text-white whitespace-pre-wrap my-2">
+                  {line.isTyping ? (
+                    <TypewriterText
+                      text={line.content}
+                      speed={10}
+                      onComplete={() => handleTypingComplete(line.id)}
+                      color="text-white"
+                    />
+                  ) : (
+                    <span className="text-white whitespace-pre-wrap">
+                      {line.content}
+                    </span>
+                  )}
+                </div>
+              )}
+              {line.type === "error" && (
+                <div className="text-red-400 whitespace-pre-wrap my-2">
+                  {line.isTyping ? (
+                    <TypewriterText
+                      text={line.content}
+                      speed={10}
+                      onComplete={() => handleTypingComplete(line.id)}
+                      color="text-red-400"
+                    />
+                  ) : (
+                    <span className="text-red-400 whitespace-pre-wrap">
+                      {line.content}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {isProcessing && (
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-white">Processing</span>
+              <div className="flex gap-1">
+                <div className="w-1 h-1 bg-white rounded-full animate-bounce"></div>
+                <div
+                  className="w-1 h-1 bg-white rounded-full animate-bounce"
+                  style={{ animationDelay: "0.1s" }}
+                ></div>
+                <div
+                  className="w-1 h-1 bg-white rounded-full animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
+              </div>
+            </div>
+          )}
+
+          {renderCurrentInput()}
+          <div ref={terminalEndRef} />
+        </div>
+
+        {/* Hidden input for mobile keyboard */}
+        <input
+          ref={hiddenInputRef}
+          type="text"
+          value={currentInput}
+          onChange={handleMobileInputChange}
+          onKeyDown={handleMobileKeyDown}
+          className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          inputMode="text"
+          style={{ fontSize: "16px" }}
+        />
+      </div>
+    );
+  }
+
+  // Desktop terminal
   return (
     <div
-      className={`terminal-container relative bg-panel-bg flex flex-col ${
+      className={`unified-terminal terminal-container relative bg-panel-bg flex flex-col ${
         inputFocus === "terminal" ? "ring-2 ring-blue-500/50" : ""
       }`}
       style={{ height: `${height}px` }}
@@ -488,11 +611,9 @@ Examples:
       {/* Terminal Output */}
       <div
         ref={terminalRef}
-        className="flex-1 overflow-auto bg-black p-4 font-mono text-xs min-h-0 focus:outline-none cursor-text"
+        className="unified-terminal-input flex-1 overflow-auto bg-black p-4 font-mono text-xs min-h-0 focus:outline-none cursor-text"
         tabIndex={0}
-        onClick={() => {
-          onInputFocusChange("terminal");
-        }}
+        onClick={handleTerminalClick}
       >
         {/* Initial welcome command */}
         <div className="mb-1">
@@ -576,61 +697,9 @@ Examples:
           </div>
         )}
 
-        {/* Current Input Line */}
-        {!typingLineId && (
-          <div className="flex items-start">
-            {renderPrompt()}
-            <span className="text-green-400">
-              &nbsp;{currentInput}
-              <span
-                className="inline-block w-2 h-3 bg-green-400 animate-blink"
-                style={{ verticalAlign: "baseline" }}
-              ></span>
-            </span>
-          </div>
-        )}
-
+        {renderCurrentInput()}
         <div ref={terminalEndRef} />
       </div>
-
-      {/* Hidden Input for Touch Devices */}
-      {isTouchDevice && (
-        <input
-          ref={hiddenInputRef}
-          type="text"
-          value={currentInput}
-          onChange={handleHiddenInputChange}
-          onKeyDown={handleHiddenInputKeyDown}
-          onFocus={handleHiddenInputFocus}
-          onBlur={handleHiddenInputBlur}
-          className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck="false"
-          inputMode="text"
-          style={{ fontSize: "16px" }}
-        />
-      )}
-
-      {/* Mobile Input Overlay for Touch Devices */}
-      {isTouchDevice && showMobileInput && (
-        <div className="absolute bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-border-color p-2 flex items-center gap-2">
-          <span className="text-cyan-400 text-xs">devrat@portfolio:~$</span>
-          <span className="text-green-400 text-xs flex-1">{currentInput}</span>
-          <button
-            onClick={() => {
-              if (hiddenInputRef.current) {
-                hiddenInputRef.current.focus();
-              }
-            }}
-            className="text-blue-400 text-xs px-2 py-1 border border-blue-400 rounded hover:bg-blue-400/20"
-            disabled={typingLineId !== null}
-          >
-            Focus
-          </button>
-        </div>
-      )}
     </div>
   );
 }
