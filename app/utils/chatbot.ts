@@ -69,18 +69,29 @@ CRITICAL PRIVACY RULE:
 - Never reference phone numbers even if they exist in any data
 
 RESPONSE RULES:
-1. Only answer questions related to Devrat's professional background, skills, experience, projects, education, or leadership roles
-2. If asked about anything else, politely redirect to resume-related topics
-3. Keep responses concise, informative, and professional
-4. Use the exact information from the resume data provided
-5. If you don't have specific information, say so clearly
-6. Don't make up or assume information not in the resume
-7. Always refer to Devrat in third person (he/his/him)
-8. Be helpful and informative about Devrat's professional background
-9. When discussing projects, include specific achievements and technologies used
-10. When discussing experience, highlight key accomplishments and impact
-11. When discussing skills, organize them by category (languages, frameworks, tools)
-12. Provide context about his education including GPA and relevant coursework when applicable
+1. Handle natural conversation patterns (greetings, thanks, casual responses) in a friendly way
+2. For greetings: Respond warmly and guide toward resume-related topics
+3. For thanks: Acknowledge graciously and offer to help with more questions
+4. For casual conversation: Be friendly but redirect to Devrat's professional background
+5. Only answer questions related to Devrat's professional background, skills, experience, projects, education, or leadership roles
+6. If asked about anything else, politely redirect to resume-related topics
+7. Keep responses SHORT and CONCISE - aim for 2-3 sentences maximum
+8. Only provide detailed explanations when specifically asked for more context or details
+9. Use the exact information from the resume data provided
+10. If you don't have specific information, say so clearly
+11. Don't make up or assume information not in the resume
+12. Always refer to Devrat in third person (he/his/him)
+13. Be direct and to the point while remaining professional
+14. For technical lists, use bullet points or comma-separated format
+15. Prioritize the most relevant information first
+16. Expand only when asked "tell me more" or "explain in detail"
+
+NATURAL CONVERSATION EXAMPLES:
+- "Hello!" → "Hi there! I'm here to help you learn about Devrat Patel's background. What would you like to know about his skills or experience?"
+- "Thank you" → "You're welcome! Feel free to ask me anything else about Devrat's projects, skills, or experience."
+- "How are you?" → "I'm doing well, thanks for asking! I'm here to help you learn about Devrat's professional background. What interests you most?"
+- "Will you hire him?" → "I'm an AI assistant, so I can't make hiring decisions, but if I were you, I'd definitely hire Devrat! 😉 His skills speak for themselves."
+- "Goodbye" → "Thanks for chatting! Hope you learned something useful about Devrat's background."
 
 CONTACT INFORMATION POLICY:
 - Email: dvp7189@mavs.uta.edu
@@ -89,25 +100,91 @@ CONTACT INFORMATION POLICY:
 - Website: devratpatel.com
 - NEVER provide phone numbers under any circumstances
 
-TONE: Professional AI assistant providing comprehensive information about Devrat Patel. Always speak about Devrat in third person, not as if you are Devrat himself.
+TONE: Friendly, professional, and conversational AI assistant. Handle natural conversation patterns warmly while focusing on Devrat's professional background. Always speak about Devrat in third person.
 
-DETAILED RESPONSE GUIDELINES:
-- For skills questions: Organize by programming languages, frameworks, and tools/technologies
-- For project questions: Include technologies used, time periods, achievements, and impact
-- For experience questions: Highlight specific accomplishments and contributions
-- For education questions: Include GPA (3.71/4.0), coursework, and institution details
-- For leadership questions: Focus on achievements, team size, and impact
+CONCISE RESPONSE GUIDELINES:
+- For skills questions: List main categories briefly (e.g., "JavaScript, TypeScript, Python, React, Next.js, Firebase")
+- For project questions: Name, tech stack, and key achievement in 1-2 sentences
+- For experience questions: Role, company, and main accomplishment
+- For education questions: Degree, school, GPA - keep it brief
+- For leadership questions: Role and key impact/achievement
 
-EXAMPLE RESPONSES:
-- "Devrat is proficient in multiple programming languages including JavaScript, TypeScript, Python, Swift, Ruby, Golang, SQL, C, Java, C++, and C#..."
-- "He worked as a Full Stack Developer at the Innovative Data Intelligence Research Lab (IDIR) at UTA from June 2025 to Present, where he built the CSE Mail Manager system..."
-- "His projects include PrintQ (May 2025 – June 2025), a real-time queue management app built with Next.js, Firebase, and TypeScript..."
-- "Devrat's educational background includes a Bachelor's in Computer Science from The University of Texas at Arlington with a 3.71/4.0 GPA..."
-- "He has extensive leadership experience, including serving as President of the Association for Computing Machinery (ACM) where he oversaw a 35+ officer team..."`;
+EXAMPLE BRIEF RESPONSES:
+- "Devrat is proficient in JavaScript, TypeScript, Python, React, Next.js, Firebase, and PostgreSQL."
+- "He's a Full Stack Developer at IDIR (UTA) building the CSE Mail Manager system."
+- "PrintQ is a real-time queue management app he built with Next.js and Firebase in May-June 2025."
+- "He has a Computer Science degree from UT Arlington with a 3.71/4.0 GPA."
+- "He served as ACM President, leading a 35+ officer team and securing $10,000+ in sponsorships."
+
+Only provide longer explanations when specifically asked for more details or context.`;
+}
+
+// Helper function to handle natural conversation patterns
+function handleNaturalConversation(input: string): string | null {
+  const lowerInput = input.toLowerCase().trim();
+
+  // Hiring-related questions
+  if (
+    lowerInput.match(
+      /(will you hire him|would you hire him|should i hire him|should we hire him|hire him|hiring him|recommend him|would you recommend him)/
+    )
+  ) {
+    return "I'm an AI assistant, so I can't make hiring decisions, but if I were you, I'd definitely hire Devrat! 😉 His skills in JavaScript, TypeScript, Python, and full-stack development speak for themselves.";
+  }
+
+  // Greetings
+  if (
+    lowerInput.match(
+      /^(hi|hello|hey|good morning|good afternoon|good evening)\.?$/
+    )
+  ) {
+    return "Hi there! I'm here to help you learn about Devrat Patel's background. What would you like to know about his skills or experience?";
+  }
+
+  // Thanks
+  if (
+    lowerInput.match(/^(thank you|thanks|thank you so much|thanks a lot)\.?$/)
+  ) {
+    return "You're welcome! Feel free to ask me anything else about Devrat's projects, skills, or experience.";
+  }
+
+  // How are you
+  if (lowerInput.match(/^(how are you|how's it going|how are things)\.?\??$/)) {
+    return "I'm doing well, thanks for asking! I'm here to help you learn about Devrat's professional background. What interests you most?";
+  }
+
+  // Goodbye
+  if (
+    lowerInput.match(/^(bye|goodbye|see you|take care|have a good day)\.?$/)
+  ) {
+    return "Thanks for chatting! Hope you learned something useful about Devrat's background.";
+  }
+
+  // Positive responses
+  if (
+    lowerInput.match(
+      /^(ok|okay|sure|great|awesome|cool|nice|interesting|wow|amazing)\.?$/
+    )
+  ) {
+    return "Great! What else would you like to know about Devrat's experience or projects?";
+  }
+
+  // Affirmative responses
+  if (lowerInput.match(/^(yes|yeah|yep|yup)\.?$/)) {
+    return "Perfect! What specific aspect of Devrat's background would you like to explore?";
+  }
+
+  return null; // No natural conversation pattern detected
 }
 
 // Generate AI response using Gemini
 export async function generateAIResponse(userInput: string): Promise<string> {
+  // Check for natural conversation patterns first
+  const naturalResponse = handleNaturalConversation(userInput);
+  if (naturalResponse) {
+    return naturalResponse;
+  }
+
   // Check rate limiting
   if (!rateLimiter.canMakeRequest()) {
     return "I'm receiving too many requests right now. Please try again in a minute.";
@@ -141,6 +218,52 @@ export async function generateAIResponse(userInput: string): Promise<string> {
 // Helper function to check if input is resume-related
 export function isResumeRelated(input: string): boolean {
   const resumeKeywords = [
+    // Natural conversation patterns (always allowed)
+    "hello",
+    "hi",
+    "hey",
+    "thank you",
+    "thanks",
+    "bye",
+    "goodbye",
+    "how are you",
+    "how's it going",
+    "nice to meet you",
+    "good morning",
+    "good afternoon",
+    "good evening",
+    "please",
+    "sorry",
+    "excuse me",
+    "ok",
+    "okay",
+    "yes",
+    "no",
+    "sure",
+    "great",
+    "awesome",
+    "cool",
+    "nice",
+    "interesting",
+    "wow",
+    "amazing",
+
+    // Hiring-related questions
+    "hire",
+    "hiring",
+    "hire him",
+    "hiring him",
+    "will you hire",
+    "would you hire",
+    "should i hire",
+    "should we hire",
+    "recommend",
+    "would you recommend",
+    "recommend him",
+    "employment",
+    "recruiting",
+    "recruit",
+
     // Basic resume topics
     "skill",
     "skills",
