@@ -154,48 +154,56 @@ export default function UnifiedTerminal({
     if (!isTouchDevice) return;
 
     const handleResize = () => {
-      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const viewportHeight =
+        window.visualViewport?.height || window.innerHeight;
       const windowHeight = window.innerHeight;
       const keyboardHeight = windowHeight - viewportHeight;
-      
+
       // Keyboard is considered open if viewport height is significantly smaller
       const keyboardOpen = keyboardHeight > 150; // 150px threshold
-      setIsKeyboardOpen(keyboardOpen);
-      
-      if (keyboardOpen && terminalEndRef.current) {
-        // More aggressive scrolling to ensure chat stays above keyboard
-        setTimeout(() => {
-          // Scroll to show the current input area above the keyboard
-          terminalEndRef.current?.scrollIntoView({ 
-            behavior: "smooth", 
-            block: "end",
-            inline: "nearest"
-          });
-          
-          // Additional scroll to compensate for keyboard height
-          if (terminalRef.current) {
-            const additionalScroll = keyboardHeight * 0.8; // 80% of keyboard height
-            terminalRef.current.scrollTop += additionalScroll;
-          }
-        }, 150);
+
+      // Only update if state actually changed
+      if (keyboardOpen !== isKeyboardOpen) {
+        setIsKeyboardOpen(keyboardOpen);
+
+        if (keyboardOpen && terminalEndRef.current) {
+          // More aggressive scrolling to ensure chat stays above keyboard
+          setTimeout(() => {
+            // Scroll to show the current input area above the keyboard
+            terminalEndRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "end",
+              inline: "nearest",
+            });
+
+            // Additional scroll to compensate for keyboard height
+            if (terminalRef.current) {
+              const additionalScroll = keyboardHeight * 0.8; // 80% of keyboard height
+              terminalRef.current.scrollTop += additionalScroll;
+            }
+          }, 150);
+        }
       }
     };
 
+    // Initial check
+    handleResize();
+
     // Use visualViewport if available (better for keyboard detection)
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener("resize", handleResize);
     } else {
-      window.addEventListener('resize', handleResize);
+      window.addEventListener("resize", handleResize);
     }
 
     return () => {
       if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener("resize", handleResize);
       } else {
-        window.removeEventListener('resize', handleResize);
+        window.removeEventListener("resize", handleResize);
       }
     };
-  }, [isTouchDevice]);
+  }, [isTouchDevice, isKeyboardOpen]);
 
   // Auto-activate input when terminal becomes visible
   useEffect(() => {
@@ -331,7 +339,11 @@ export default function UnifiedTerminal({
 
     // For touch devices, focus the hidden input
     if (isTouchDevice && hiddenInputRef.current) {
-      hiddenInputRef.current.focus();
+      // Reset keyboard state first, then focus
+      setIsKeyboardOpen(false);
+      setTimeout(() => {
+        hiddenInputRef.current?.focus();
+      }, 50);
     }
   };
 
@@ -578,14 +590,16 @@ Examples:
   // Mobile full-screen terminal
   if (isMobile) {
     return (
-      <div 
+      <div
         className={`unified-terminal fixed inset-0 z-50 bg-black flex flex-col ${
-          isKeyboardOpen ? 'pb-0' : ''
+          isKeyboardOpen ? "pb-0" : ""
         }`}
         style={{
-          paddingBottom: isKeyboardOpen ? '0px' : 'env(safe-area-inset-bottom)',
-          height: isKeyboardOpen ? 'auto' : '100dvh',
-          minHeight: isKeyboardOpen ? `${window.visualViewport?.height || window.innerHeight}px` : '100dvh'
+          paddingBottom: isKeyboardOpen ? "0px" : "env(safe-area-inset-bottom)",
+          height: isKeyboardOpen ? "auto" : "100dvh",
+          minHeight: isKeyboardOpen
+            ? `${window.visualViewport?.height || window.innerHeight}px`
+            : "100dvh",
         }}
       >
         {/* Header */}
@@ -614,15 +628,23 @@ Examples:
         {/* Terminal Content */}
         <div
           className={`unified-terminal-input flex-1 overflow-auto p-4 font-mono text-sm cursor-text ${
-            isKeyboardOpen ? 'pb-2' : 'pb-4'
+            isKeyboardOpen ? "pb-2" : "pb-4"
           }`}
           onClick={handleTerminalClick}
           ref={terminalRef}
           style={{
             // Adjust height when keyboard is open to ensure proper scrolling
-            height: isKeyboardOpen ? `${(window.visualViewport?.height || window.innerHeight) - 120}px` : 'auto',
-            maxHeight: isKeyboardOpen ? `${(window.visualViewport?.height || window.innerHeight) - 120}px` : 'none',
-            paddingBottom: isKeyboardOpen ? '60px' : '16px' // Extra padding to keep input visible
+            height: isKeyboardOpen
+              ? `${
+                  (window.visualViewport?.height || window.innerHeight) - 120
+                }px`
+              : "auto",
+            maxHeight: isKeyboardOpen
+              ? `${
+                  (window.visualViewport?.height || window.innerHeight) - 120
+                }px`
+              : "none",
+            paddingBottom: isKeyboardOpen ? "60px" : "16px", // Extra padding to keep input visible
           }}
         >
           {/* Initial welcome command */}
@@ -719,18 +741,26 @@ Examples:
           onChange={handleMobileInputChange}
           onKeyDown={handleMobileKeyDown}
           onFocus={() => {
-            setIsKeyboardOpen(true);
-            // Scroll to input area when keyboard opens
+            // Force keyboard state update
             setTimeout(() => {
-              if (terminalEndRef.current) {
-                terminalEndRef.current.scrollIntoView({ 
-                  behavior: "smooth", 
-                  block: "end" 
-                });
-              }
-            }, 200);
+              setIsKeyboardOpen(true);
+              // Scroll to input area when keyboard opens
+              setTimeout(() => {
+                if (terminalEndRef.current) {
+                  terminalEndRef.current.scrollIntoView({
+                    behavior: "smooth",
+                    block: "end",
+                  });
+                }
+              }, 100);
+            }, 50);
           }}
-          onBlur={() => setIsKeyboardOpen(false)}
+          onBlur={() => {
+            // Reset keyboard state when input loses focus
+            setTimeout(() => {
+              setIsKeyboardOpen(false);
+            }, 100);
+          }}
           className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
           autoComplete="off"
           autoCorrect="off"
@@ -873,18 +903,26 @@ Examples:
           onChange={handleMobileInputChange}
           onKeyDown={handleMobileKeyDown}
           onFocus={() => {
-            setIsKeyboardOpen(true);
-            // Scroll to input area when keyboard opens
+            // Force keyboard state update
             setTimeout(() => {
-              if (terminalEndRef.current) {
-                terminalEndRef.current.scrollIntoView({ 
-                  behavior: "smooth", 
-                  block: "end" 
-                });
-              }
-            }, 200);
+              setIsKeyboardOpen(true);
+              // Scroll to input area when keyboard opens
+              setTimeout(() => {
+                if (terminalEndRef.current) {
+                  terminalEndRef.current.scrollIntoView({
+                    behavior: "smooth",
+                    block: "end",
+                  });
+                }
+              }, 100);
+            }, 50);
           }}
-          onBlur={() => setIsKeyboardOpen(false)}
+          onBlur={() => {
+            // Reset keyboard state when input loses focus
+            setTimeout(() => {
+              setIsKeyboardOpen(false);
+            }, 100);
+          }}
           className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
           autoComplete="off"
           autoCorrect="off"
