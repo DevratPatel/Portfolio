@@ -80,6 +80,7 @@ export default function UnifiedTerminal({
   const [cursorPosition, setCursorPosition] = useState(0);
   const [isInputActive, setIsInputActive] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
@@ -147,6 +148,46 @@ export default function UnifiedTerminal({
       terminalEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [lines, currentInput, isProcessing]);
+
+  // Handle mobile keyboard appearance
+  useEffect(() => {
+    if (!isTouchDevice) return;
+
+    const handleResize = () => {
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const windowHeight = window.innerHeight;
+      const keyboardHeight = windowHeight - viewportHeight;
+      
+      // Keyboard is considered open if viewport height is significantly smaller
+      const keyboardOpen = keyboardHeight > 150; // 150px threshold
+      setIsKeyboardOpen(keyboardOpen);
+      
+      if (keyboardOpen && terminalEndRef.current) {
+        // Scroll to bottom with the keyboard open
+        setTimeout(() => {
+          terminalEndRef.current?.scrollIntoView({ 
+            behavior: "smooth", 
+            block: "end" 
+          });
+        }, 100);
+      }
+    };
+
+    // Use visualViewport if available (better for keyboard detection)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    } else {
+      window.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      } else {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, [isTouchDevice]);
 
   // Auto-activate input when terminal becomes visible
   useEffect(() => {
@@ -529,7 +570,15 @@ Examples:
   // Mobile full-screen terminal
   if (isMobile) {
     return (
-      <div className="unified-terminal fixed inset-0 z-50 bg-black flex flex-col">
+      <div 
+        className={`unified-terminal fixed inset-0 z-50 bg-black flex flex-col ${
+          isKeyboardOpen ? 'pb-0' : ''
+        }`}
+        style={{
+          paddingBottom: isKeyboardOpen ? '0px' : 'env(safe-area-inset-bottom)',
+          height: isKeyboardOpen ? '100vh' : '100dvh'
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-border-color bg-panel-bg">
           <div className="flex items-center gap-2">
@@ -555,9 +604,15 @@ Examples:
 
         {/* Terminal Content */}
         <div
-          className="unified-terminal-input flex-1 overflow-auto p-4 font-mono text-sm cursor-text"
+          className={`unified-terminal-input flex-1 overflow-auto p-4 font-mono text-sm cursor-text ${
+            isKeyboardOpen ? 'pb-2' : 'pb-4'
+          }`}
           onClick={handleTerminalClick}
           ref={terminalRef}
+          style={{
+            // Adjust bottom padding when keyboard is open
+            paddingBottom: isKeyboardOpen ? '8px' : '16px'
+          }}
         >
           {/* Initial welcome command */}
           <div className="mb-2">
@@ -652,6 +707,8 @@ Examples:
           value={currentInput}
           onChange={handleMobileInputChange}
           onKeyDown={handleMobileKeyDown}
+          onFocus={() => setIsKeyboardOpen(true)}
+          onBlur={() => setIsKeyboardOpen(false)}
           className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
           autoComplete="off"
           autoCorrect="off"
@@ -793,6 +850,8 @@ Examples:
           value={currentInput}
           onChange={handleMobileInputChange}
           onKeyDown={handleMobileKeyDown}
+          onFocus={() => setIsKeyboardOpen(true)}
+          onBlur={() => setIsKeyboardOpen(false)}
           className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
           autoComplete="off"
           autoCorrect="off"
