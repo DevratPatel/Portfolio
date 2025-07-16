@@ -10,7 +10,6 @@ import {
   VscFile,
   VscChevronUp,
 } from "react-icons/vsc";
-import Terminal from "./Terminal";
 import UnifiedTerminal from "./UnifiedTerminal";
 import {
   SiReact,
@@ -1986,7 +1985,7 @@ export default function CodeEditor({
           </div>
         )}
 
-        {/* Terminal - Hidden on mobile (uses separate MobileTerminal) */}
+        {/* Terminal - Hidden on mobile (uses unified terminal) */}
         {isTerminalVisible && !isMobile && (
           <div className="border-t border-border-color">
             <UnifiedTerminal

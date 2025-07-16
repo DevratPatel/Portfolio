@@ -79,12 +79,24 @@ export default function UnifiedTerminal({
   const [typingLineId, setTypingLineId] = useState<string | null>(null);
   const [cursorPosition, setCursorPosition] = useState(0);
   const [isInputActive, setIsInputActive] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize terminal on mount
   useEffect(() => {
+    // Detect touch devices (including tablets)
+    const detectTouchDevice = () => {
+      const hasTouch =
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0 ||
+        window.matchMedia("(pointer: coarse)").matches;
+      setIsTouchDevice(hasTouch);
+    };
+
+    detectTouchDevice();
+
     const welcomeLines: TerminalLine[] = [
       {
         id: "welcome-1",
@@ -95,6 +107,9 @@ export default function UnifiedTerminal({
       },
     ];
     setLines(welcomeLines);
+
+    // Auto-activate input on mount
+    setIsInputActive(true);
 
     // Initialize Gemini API
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -133,10 +148,54 @@ export default function UnifiedTerminal({
     }
   }, [lines, currentInput, isProcessing]);
 
+  // Auto-activate input when terminal becomes visible
+  useEffect(() => {
+    if (isVisible && !typingLineId) {
+      setIsInputActive(true);
+      onInputFocusChange("terminal");
+
+      // For touch devices, focus the hidden input
+      if (isTouchDevice && hiddenInputRef.current) {
+        setTimeout(() => {
+          hiddenInputRef.current?.focus();
+        }, 100);
+      }
+    }
+  }, [isVisible, typingLineId, isTouchDevice, onInputFocusChange]);
+
+  // Focus management for touch devices
+  useEffect(() => {
+    if (
+      isVisible &&
+      inputFocus === "terminal" &&
+      isInputActive &&
+      isTouchDevice &&
+      hiddenInputRef.current
+    ) {
+      hiddenInputRef.current.focus();
+    }
+  }, [isVisible, inputFocus, isInputActive, isTouchDevice]);
+
   // Handle keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isVisible || typingLineId || inputFocus !== "terminal") return;
+      if (!isVisible || typingLineId) return;
+
+      // Auto-focus terminal if not already focused
+      if (inputFocus !== "terminal") {
+        onInputFocusChange("terminal");
+        setIsInputActive(true);
+
+        // For touch devices, focus the hidden input
+        if (isTouchDevice && hiddenInputRef.current) {
+          hiddenInputRef.current.focus();
+        }
+      }
+
+      // Don't handle keyboard events if we're using touch input
+      if (isTouchDevice && document.activeElement === hiddenInputRef.current) {
+        return;
+      }
 
       e.preventDefault();
 
@@ -208,18 +267,22 @@ export default function UnifiedTerminal({
     historyIndex,
     typingLineId,
     inputFocus,
+    isTouchDevice,
+    onInputFocusChange,
   ]);
 
   // Handle terminal click
-  const handleTerminalClick = () => {
-    if (!typingLineId) {
-      onInputFocusChange("terminal");
-      setIsInputActive(true);
+  const handleTerminalClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-      // For mobile devices, focus the hidden input
-      if (isMobile && hiddenInputRef.current) {
-        hiddenInputRef.current.focus();
-      }
+    // Set focus to terminal
+    onInputFocusChange("terminal");
+    setIsInputActive(true);
+
+    // For touch devices, focus the hidden input
+    if (isTouchDevice && hiddenInputRef.current) {
+      hiddenInputRef.current.focus();
     }
   };
 
@@ -238,6 +301,27 @@ export default function UnifiedTerminal({
         handleCommand(currentInput);
         setCurrentInput("");
         setCursorPosition(0);
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const newIndex =
+          historyIndex === -1
+            ? commandHistory.length - 1
+            : Math.max(0, historyIndex - 1);
+        setHistoryIndex(newIndex);
+        setCurrentInput(commandHistory[newIndex]);
+        setCursorPosition(commandHistory[newIndex].length);
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIndex !== -1) {
+        const newIndex =
+          historyIndex === commandHistory.length - 1 ? -1 : historyIndex + 1;
+        setHistoryIndex(newIndex);
+        const newInput = newIndex === -1 ? "" : commandHistory[newIndex];
+        setCurrentInput(newInput);
+        setCursorPosition(newInput.length);
       }
     }
   };
@@ -700,6 +784,24 @@ Examples:
         {renderCurrentInput()}
         <div ref={terminalEndRef} />
       </div>
+
+      {/* Hidden input for touch devices (tablets/iPads) */}
+      {isTouchDevice && (
+        <input
+          ref={hiddenInputRef}
+          type="text"
+          value={currentInput}
+          onChange={handleMobileInputChange}
+          onKeyDown={handleMobileKeyDown}
+          className="absolute -top-10 left-0 w-full h-8 opacity-0 pointer-events-none"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          inputMode="text"
+          style={{ fontSize: "16px" }}
+        />
+      )}
     </div>
   );
 }
