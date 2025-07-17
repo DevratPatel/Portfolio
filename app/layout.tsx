@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Devrat Patel",
-  description: "Design is thinking made visual. And I Design.",
+  description:
+    "Full Stack Developer & UI/UX Designer. Interactive portfolio with AI-powered terminal experience.",
   viewport:
     "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
   icons: {
@@ -23,12 +24,12 @@ export const metadata: Metadata = {
   authors: [{ name: "Devrat Patel" }],
   openGraph: {
     title: "Devrat Patel",
-    description: `Design is thinking made visual. And I Design.`,
+    description: `Full Stack Developer & UI/UX Designer. Interactive portfolio with AI-powered terminal experience.`,
     url: "https://www.devratpatel.com",
     type: "website",
     images: [
       {
-        url: "../public/dp logo.svg",
+        url: "../public/dp_logo_main.png",
         width: 1200,
         height: 630,
         alt: "Devrat Patel",
