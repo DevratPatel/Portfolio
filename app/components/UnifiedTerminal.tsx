@@ -606,7 +606,7 @@ Examples:
           </div>
           <button
             onClick={onToggle}
-            className="p-1 hover:bg-border-color rounded"
+            className="p-1 hover:bg-border-color rounded hidden"
           >
             <VscChromeClose size={14} className="text-text-primary" />
           </button>
