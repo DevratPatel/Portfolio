@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "../public/dp_logo_main.png",
+        url: "../public/devratmeta.jpg",
         width: 1200,
         height: 630,
         alt: "Devrat Patel",
